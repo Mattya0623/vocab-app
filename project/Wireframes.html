@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vocab — Wireframes</title>
+  <link rel="stylesheet" href="wf-styles.css">
+  <style>
+    html, body { margin: 0; padding: 0; height: 100%; background: #ece5cf; font-family: 'Kalam', sans-serif; }
+    body { overflow: hidden; }
+    #root { height: 100vh; width: 100vw; }
+
+    /* a hand-drawn-feeling phone bezel for canvas artboards */
+    .wf-phone {
+      width: 100%; height: 100%;
+      border: 2.2px solid #1a1a1a;
+      border-radius: 32px;
+      background: #fdfaf0;
+      box-shadow: 4px 5px 0 #1a1a1a;
+      padding: 8px;
+      box-sizing: border-box;
+      position: relative;
+      overflow: hidden;
+    }
+    .wf-phone::before {
+      content: '';
+      position: absolute;
+      top: 14px; left: 50%; transform: translateX(-50%);
+      width: 56px; height: 6px; background: #1a1a1a;
+      border-radius: 4px; z-index: 5;
+    }
+    .wf-phone-inner {
+      width: 100%; height: 100%;
+      border: 1.4px solid #1a1a1a;
+      border-radius: 24px;
+      overflow: hidden;
+      background: #fdfaf0;
+    }
+
+    /* browser bezel */
+    .wf-browser {
+      width: 100%; height: 100%;
+      border: 2px solid #1a1a1a;
+      border-radius: 8px 14px 8px 14px;
+      background: #fdfaf0;
+      box-shadow: 4px 5px 0 #1a1a1a;
+      overflow: hidden;
+      display: flex; flex-direction: column;
+    }
+    .wf-browser-chrome {
+      padding: 8px 12px;
+      border-bottom: 1.4px solid #1a1a1a;
+      background: var(--paper-soft);
+      display: flex; align-items: center; gap: 8px;
+      font-family: var(--mono); font-size: 11px; color: #4a4a4a;
+    }
+    .wf-browser-dot { width: 10px; height: 10px; border-radius: 50%; border: 1.3px solid #1a1a1a; }
+    .wf-browser-url {
+      flex: 1; padding: 3px 8px;
+      border: 1.3px solid #1a1a1a;
+      border-radius: 10px; background: var(--paper);
+      font-family: var(--mono); font-size: 11px;
+    }
+    .wf-browser-body { flex: 1; overflow: hidden; }
+
+    /* DC section title overrides — wireframe-y */
+    .dc-section-title, .dc-artboard-label {
+      font-family: 'Caveat', cursive !important;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <script type="text/babel" src="design-canvas.jsx"></script>
+  <script type="text/babel" src="wf-ui.jsx"></script>
+  <script type="text/babel" src="wf-screens-mobile.jsx"></script>
+  <script type="text/babel" src="wf-screens-mobile-2.jsx"></script>
+  <script type="text/babel" src="wf-screens-desktop.jsx"></script>
+
+  <script type="text/babel">
+    const { useState } = React;
+
+    // Mobile artboard size — phone-ish
+    const M_W = 360, M_H = 720;
+    const D_W = 1000, D_H = 640;
+
+    function Phone({ children }) {
+      return (
+        <div className="wf-phone">
+          <div className="wf-phone-inner">{children}</div>
+        </div>
+      );
+    }
+
+    function Browser({ children, url = 'vocab.app/home' }) {
+      return (
+        <div className="wf-browser">
+          <div className="wf-browser-chrome">
+            <span className="wf-browser-dot" style={{ background: '#f4ccc8' }}/>
+            <span className="wf-browser-dot" style={{ background: '#f3e6b0' }}/>
+            <span className="wf-browser-dot" style={{ background: '#d6e7c9' }}/>
+            <div className="wf-browser-url">{url}</div>
+          </div>
+          <div className="wf-browser-body">{children}</div>
+        </div>
+      );
+    }
+
+    function App() {
+      return (
+        <DesignCanvas>
+          {/* ── 0 · Login + Empty ── */}
+          <DCSection id="entry" title="① エントリー" subtitle="ログイン / 空状態">
+            <DCArtboard id="login-mobile" label="A · Googleログイン (Mobile)" width={M_W} height={M_H}>
+              <Phone><MScreenLogin /></Phone>
+            </DCArtboard>
+            <DCArtboard id="empty-mobile" label="B · 空状態 → インポート促進" width={M_W} height={M_H}>
+              <Phone><MScreenEmpty /></Phone>
+            </DCArtboard>
+          </DCSection>
+
+          {/* ── 1 · Main flashcard variants ── */}
+          <DCSection id="main" title="② メインフラッシュカード (全単語モード)" subtitle="A: メタ強調 / B: ミニマル / C: 詳細パネル">
+            <DCArtboard id="main-A" label="A · Meta-rich · Mobile" width={M_W} height={M_H}>
+              <Phone><MScreenMainA /></Phone>
+            </DCArtboard>
+            <DCArtboard id="main-B" label="B · Minimal · Mobile" width={M_W} height={M_H}>
+              <Phone><MScreenMainB /></Phone>
+            </DCArtboard>
+            <DCArtboard id="main-C" label="C · Detail panel · Mobile" width={M_W} height={M_H}>
+              <Phone><MScreenMainC /></Phone>
+            </DCArtboard>
+            <DCArtboard id="main-D" label="D · Desktop layout" width={D_W} height={D_H}>
+              <Browser url="vocab.app/play"><DScreenMain /></Browser>
+            </DCArtboard>
+          </DCSection>
+
+          {/* ── 2 · Result feedback ── */}
+          <DCSection id="result" title="③ 結果フィードバック" subtitle="正解 / 不正解の瞬間">
+            <DCArtboard id="result-ok" label="A · 正解 (+1 XP)" width={M_W} height={M_H}>
+              <Phone><MScreenResultOK /></Phone>
+            </DCArtboard>
+            <DCArtboard id="result-ng" label="B · 不正解 · 答え開示" width={M_W} height={M_H}>
+              <Phone><MScreenResultNG /></Phone>
+            </DCArtboard>
+          </DCSection>
+
+          {/* ── 3 · Box selection (Leitner) ── */}
+          <DCSection id="boxes" title="④ ボックス (ライトナー · 本棚メタファー)" subtitle="A: 縦積み / B: 本棚 / C: 引き出し / D: Desktop">
+            <DCArtboard id="boxes-A" label="A · 縦積み (上=熟知)" width={M_W} height={M_H}>
+              <Phone><MScreenBoxesA /></Phone>
+            </DCArtboard>
+            <DCArtboard id="boxes-B" label="B · 本棚 (傾き)" width={M_W} height={M_H}>
+              <Phone><MScreenBoxesB /></Phone>
+            </DCArtboard>
+            <DCArtboard id="boxes-C" label="C · 引き出し" width={M_W} height={M_H}>
+              <Phone><MScreenBoxesC /></Phone>
+            </DCArtboard>
+            <DCArtboard id="boxes-D" label="D · Desktop 本棚" width={D_W} height={D_H}>
+              <Browser url="vocab.app/boxes"><DScreenBoxes /></Browser>
+            </DCArtboard>
+            <DCArtboard id="boxes-quiz" label="E · Box絞込みクイズ" width={M_W} height={M_H}>
+              <Phone><MScreenBoxQuiz /></Phone>
+            </DCArtboard>
+          </DCSection>
+
+          {/* ── 4 · Word list ── */}
+          <DCSection id="list" title="⑤ 単語管理" subtitle="一覧 + 一括削除">
+            <DCArtboard id="list-A" label="A · チェックリスト · Mobile" width={M_W} height={M_H}>
+              <Phone><MScreenListA /></Phone>
+            </DCArtboard>
+            <DCArtboard id="list-B" label="B · カードグリッド · Mobile" width={M_W} height={M_H}>
+              <Phone><MScreenListB /></Phone>
+            </DCArtboard>
+            <DCArtboard id="list-D" label="C · テーブル · Desktop" width={D_W} height={D_H}>
+              <Browser url="vocab.app/words"><DScreenList /></Browser>
+            </DCArtboard>
+          </DCSection>
+
+          {/* ── 5 · Import ── */}
+          <DCSection id="import" title="⑥ 単語のインポート" subtitle="CSV / テキスト / テーブル編集">
+            <DCArtboard id="import-A" label="A · ペースト + プレビュー" width={M_W} height={M_H}>
+              <Phone><MScreenImportA /></Phone>
+            </DCArtboard>
+            <DCArtboard id="import-B" label="B · テーブル直接編集" width={M_W} height={M_H}>
+              <Phone><MScreenImportB /></Phone>
+            </DCArtboard>
+            <DCArtboard id="import-D" label="C · Desktop · ペースト + 自動判定" width={D_W} height={D_H}>
+              <Browser url="vocab.app/import"><DScreenImport /></Browser>
+            </DCArtboard>
+          </DCSection>
+
+          {/* ── 6 · Stats & Level ── */}
+          <DCSection id="stats" title="⑦ 統計 & レベリング (RPG)" subtitle="XPバー + バッジ + Box内訳">
+            <DCArtboard id="stats-A" label="A · ヒーローカード · Mobile" width={M_W} height={M_H}>
+              <Phone><MScreenStatsA /></Phone>
+            </DCArtboard>
+            <DCArtboard id="stats-B" label="B · データ重視 · Mobile" width={M_W} height={M_H}>
+              <Phone><MScreenStatsB /></Phone>
+            </DCArtboard>
+            <DCArtboard id="stats-D" label="C · Desktop ダッシュボード" width={D_W} height={D_H}>
+              <Browser url="vocab.app/stats"><DScreenStats /></Browser>
+            </DCArtboard>
+          </DCSection>
+
+          {/* ── 7 · Cover · system notes ── */}
+          <DCSection id="notes" title="⑧ メモ" subtitle="設計の前提とロジック">
+            <DCArtboard id="note-data" label="データモデル" width={520} height={460}>
+              <div style={{ padding: 18, height: '100%', boxSizing: 'border-box', background: 'var(--paper)', overflow: 'hidden' }}>
+                <div className="sk-script" style={{ fontSize: 28, lineHeight: 1, marginBottom: 8 }}>Word データ</div>
+                <pre className="sk-mono" style={{
+                  fontSize: 11, lineHeight: 1.5, margin: 0, padding: 10,
+                  background: 'var(--paper-soft)', border: '1.3px dashed var(--ink-soft)',
+                  borderRadius: 6, whiteSpace: 'pre-wrap',
+                }}>{`/users/{uid}/words/{wordId}:
+  id:              string  // ulid
+  word:            string  // "apple"
+  meaning:         string  // "りんご"
+  attempts:        number  // 累計試行
+  correct_answers: number
+  accuracy:        number  // attempts===0 ? null : c/a*100
+  box:             number  // 1..7 — accuracy から派生
+  created_at:      ts
+  updated_at:      ts`}</pre>
+                <div className="sk-callout-sub" style={{ marginTop: 8 }}>
+                  Firestore: user 配下に分離 · セキュリティルールで他者アクセス遮断
+                </div>
+              </div>
+            </DCArtboard>
+
+            <DCArtboard id="note-box" label="Boxロジック" width={520} height={460}>
+              <div style={{ padding: 18, height: '100%', boxSizing: 'border-box', background: 'var(--paper)', overflow: 'hidden' }}>
+                <div className="sk-script" style={{ fontSize: 28, lineHeight: 1, marginBottom: 8 }}>Box 振り分け</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 12 }}>
+                  {[
+                    ['Box 1', '0 – 25 %', '#f4ccc8'],
+                    ['Box 2', '26 – 40 %', '#f7d9b9'],
+                    ['Box 3', '41 – 55 %', '#f3e6b0'],
+                    ['Box 4', '56 – 75 %', '#dde8bb'],
+                    ['Box 5', '76 – 90 %', '#c8e1c4'],
+                    ['Box 6', '91 – 95 %', '#bcd8d0'],
+                    ['Box 7', '96 – 100 %', '#cdc8e3'],
+                  ].map(([k, v, c]) => (
+                    <div key={k} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                      <span style={{ width: 18, height: 18, background: c, border: '1.3px solid var(--ink)', borderRadius: 3 }}/>
+                      <span style={{ fontWeight: 700, width: 60 }}>{k}</span>
+                      <span className="sk-mono">{v}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="sk-callout-sub" style={{ marginTop: 10 }}>
+                  accuracy が更新される度、box を再計算して即時反映。<br/>
+                  attempts === 0 の場合は Box 1 (未試行扱い)。
+                </div>
+              </div>
+            </DCArtboard>
+
+            <DCArtboard id="note-xp" label="レベルカーブ" width={520} height={460}>
+              <div style={{ padding: 18, height: '100%', boxSizing: 'border-box', background: 'var(--paper)' }}>
+                <div className="sk-script" style={{ fontSize: 28, lineHeight: 1, marginBottom: 6 }}>XP / レベル</div>
+                <pre className="sk-mono" style={{
+                  fontSize: 11, lineHeight: 1.5, margin: 0, padding: 10,
+                  background: 'var(--paper-soft)', border: '1.3px dashed var(--ink-soft)',
+                  borderRadius: 6,
+                }}>{`// XP = 累計解答数 (= Σ attempts)
+// Lv → 必要XP: 10 × Lv²
+//   Lv2: 40,  Lv5: 250,  Lv7: 490
+//   Lv10: 1000, Lv15: 2250
+function levelFromXp(xp) {
+  return Math.floor(Math.sqrt(xp / 10));
+}`}</pre>
+                <div className="sk-callout-sub" style={{ marginTop: 8 }}>
+                  低レベルではテンポよく上がり、後半は指数的に伸びる設計。
+                </div>
+                <div style={{ display: 'flex', gap: 4, alignItems: 'flex-end', height: 80, marginTop: 12 }}>
+                  {[1,2,3,4,5,6,7,8,9,10,11,12].map(lv => (
+                    <div key={lv} style={{ flex: 1, textAlign: 'center' }}>
+                      <div style={{
+                        height: lv * lv * 0.55,
+                        background: lv === 7 ? 'var(--accent)' : 'var(--paper-shade)',
+                        border: '1.2px solid var(--ink)', borderRadius: 2,
+                      }}/>
+                      <div className="sk-callout-sub" style={{ fontSize: 9 }}>{lv}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </DCArtboard>
+
+            <DCArtboard id="note-arch" label="状態管理メモ" width={520} height={460}>
+              <div style={{ padding: 18, height: '100%', boxSizing: 'border-box', background: 'var(--paper)' }}>
+                <div className="sk-script" style={{ fontSize: 28, lineHeight: 1, marginBottom: 8 }}>疎結合の方針</div>
+                <ul style={{ paddingLeft: 18, margin: 0, fontSize: 13, lineHeight: 1.6 }}>
+                  <li>状態は <span className="sk-mono">Zustand</span> or <span className="sk-mono">Jotai</span> で 1 ストア化</li>
+                  <li>Quiz 出題ロジックは <span className="sk-mono">pickQuestion(pool, exclude)</span> として純粋関数で分離</li>
+                  <li>ダミー意味の抽選は <span className="sk-mono">3 件未満</span>でフォールバック(自前バンク)</li>
+                  <li>音声・タイマー・通知は <span className="sk-mono">後付け可能なフック</span>として設計</li>
+                  <li>Firebase アクセスはリポジトリ層に閉じ込め、画面側は型のみに依存</li>
+                </ul>
+                <SkHR style={{ margin: '10px 0' }} />
+                <div className="sk-callout-sub">
+                  Next.js App Router + Tailwind + Firebase (Auth / Firestore) を想定。<br/>
+                  本ワイヤーフレームは構造とフローの確認用。最終実装の見た目はトーン&マナーを別途決定。
+                </div>
+              </div>
+            </DCArtboard>
+          </DCSection>
+        </DesignCanvas>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>

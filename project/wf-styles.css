@@ -1,0 +1,236 @@
+/* Wireframe sketch style — shared by canvas + prototype */
+@import url('https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&family=Caveat:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  --ink: #1a1a1a;
+  --ink-soft: #4a4a4a;
+  --ink-light: #9a9590;
+  --paper: #fdfaf0;
+  --paper-soft: #f4efe1;
+  --paper-shade: #ebe5d2;
+  --accent: #d97a3c;
+  --accent-soft: #f2c79a;
+  --green: #5a8a4a;
+  --red: #c25450;
+  --hand: 'Kalam', 'Patrick Hand', system-ui, sans-serif;
+  --script: 'Caveat', 'Kalam', cursive;
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+/* sketchy primitive helpers */
+.sk { font-family: var(--hand); color: var(--ink); }
+.sk-script { font-family: var(--script); }
+.sk-mono { font-family: var(--mono); }
+
+.sk-box {
+  border: 1.6px solid var(--ink);
+  background: var(--paper);
+  border-radius: 6px 9px 5px 8px;
+  position: relative;
+}
+.sk-box.dashed { border-style: dashed; border-width: 1.4px; }
+.sk-box.thick { border-width: 2.2px; }
+.sk-box.shaded { background: var(--paper-soft); }
+.sk-box.deep { background: var(--paper-shade); }
+
+/* a slight wobble via box-shadow doubling */
+.sk-shadow { box-shadow: 2.5px 3px 0 var(--ink); }
+.sk-shadow-soft { box-shadow: 1.5px 2px 0 var(--ink); }
+.sk-shadow-accent { box-shadow: 2.5px 3px 0 var(--accent); }
+
+/* hand drawn underline using svg-like wavy border */
+.sk-underline {
+  background-image: linear-gradient(transparent calc(100% - 3px), var(--ink) calc(100% - 3px));
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  padding-bottom: 2px;
+}
+
+/* button */
+.sk-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 1.6px solid var(--ink);
+  border-radius: 8px 14px 7px 12px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--hand);
+  font-weight: 700;
+  font-size: 15px;
+  box-shadow: 2px 2.5px 0 var(--ink);
+  cursor: pointer;
+  text-align: center;
+  user-select: none;
+  transition: transform 0.08s, box-shadow 0.08s;
+}
+.sk-btn:hover { transform: translate(-1px, -1px); box-shadow: 3px 3.5px 0 var(--ink); }
+.sk-btn:active { transform: translate(1px, 1.5px); box-shadow: 1px 1px 0 var(--ink); }
+.sk-btn.primary { background: var(--accent); color: var(--paper); }
+.sk-btn.ghost { box-shadow: none; }
+.sk-btn.danger { color: var(--red); }
+.sk-btn.correct { background: var(--green); color: var(--paper); }
+.sk-btn.wrong   { background: var(--red);   color: var(--paper); }
+
+/* input */
+.sk-input {
+  font-family: var(--hand);
+  font-size: 15px;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1.6px solid var(--ink);
+  border-radius: 6px 9px 6px 9px;
+  padding: 8px 10px;
+  width: 100%;
+  outline: none;
+}
+.sk-input::placeholder { color: var(--ink-light); font-style: italic; }
+.sk-input.area { min-height: 100px; resize: none; font-family: var(--mono); font-size: 12px; }
+
+/* a hand-drawn divider — multiple short slashes */
+.sk-hr {
+  height: 14px;
+  background-image: repeating-linear-gradient(
+    100deg,
+    transparent 0 4px,
+    var(--ink-soft) 4px 8px,
+    transparent 8px 12px
+  );
+  opacity: 0.85;
+}
+
+/* placeholder / scribble */
+.sk-placeholder {
+  background: repeating-linear-gradient(
+    -30deg,
+    var(--paper-soft) 0 6px,
+    var(--paper-shade) 6px 12px
+  );
+  border: 1.4px dashed var(--ink-soft);
+  color: var(--ink-soft);
+  font-family: var(--mono);
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  border-radius: 6px;
+}
+
+/* "annotation" — for designer's notes pointing at things */
+.sk-anno {
+  font-family: var(--script);
+  font-size: 18px;
+  color: var(--accent);
+  line-height: 1;
+}
+.sk-anno-line {
+  height: 1.4px;
+  background: var(--accent);
+  position: absolute;
+}
+
+/* tag / chip */
+.sk-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border: 1.3px solid var(--ink);
+  border-radius: 12px;
+  font-family: var(--hand);
+  font-size: 12px;
+  background: var(--paper);
+  line-height: 1.4;
+}
+.sk-tag.accent { background: var(--accent-soft); }
+.sk-tag.green { background: #d6e7c9; }
+.sk-tag.red { background: #f4ccc8; }
+
+/* progress bar — segmented sketchy */
+.sk-progress {
+  height: 14px;
+  border: 1.5px solid var(--ink);
+  border-radius: 8px;
+  background: var(--paper);
+  position: relative;
+  overflow: hidden;
+}
+.sk-progress > .fill {
+  height: 100%;
+  background: var(--accent);
+  background-image: repeating-linear-gradient(
+    45deg,
+    var(--accent) 0 6px,
+    #c46a30 6px 8px
+  );
+}
+
+/* nav surfaces */
+.sk-tabbar {
+  display: flex;
+  border-top: 1.6px solid var(--ink);
+  background: var(--paper);
+}
+.sk-tabbar > * {
+  flex: 1;
+  text-align: center;
+  padding: 8px 4px 10px;
+  font-family: var(--hand);
+  font-size: 12px;
+  color: var(--ink-soft);
+  border-right: 1px dashed var(--ink-light);
+}
+.sk-tabbar > *:last-child { border-right: none; }
+.sk-tabbar > .active { color: var(--ink); font-weight: 700; }
+.sk-tabbar > .active > .dot {
+  display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent); margin-right: 4px; transform: translateY(-1px);
+}
+
+/* simple icon glyphs drawn as squares */
+.sk-icon {
+  width: 22px; height: 22px;
+  border: 1.4px solid currentColor;
+  border-radius: 5px;
+  display: inline-block;
+  position: relative;
+}
+
+/* scrollbox for canvas screens */
+.sk-screen {
+  position: relative;
+  background: var(--paper);
+  font-family: var(--hand);
+  color: var(--ink);
+  overflow: hidden;
+}
+
+/* dotted background grid for canvas */
+.sk-grid-bg {
+  background-color: #f5efde;
+  background-image:
+    radial-gradient(rgba(0,0,0,0.18) 1px, transparent 1px);
+  background-size: 18px 18px;
+  background-position: 0 0;
+}
+
+/* tiny labels above artboards */
+.sk-callout {
+  font-family: var(--script);
+  font-size: 22px;
+  color: var(--ink);
+}
+.sk-callout-sub {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* clickable hint area for prototype */
+.sk-hit { cursor: pointer; transition: background 0.12s; }
+.sk-hit:hover { background: rgba(217,122,60,0.08); }

@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vocab — Neon Prototype</title>
+  <link rel="stylesheet" href="neon.css">
+  <style>
+    html, body { background: #04051a; }
+    #root {
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px; box-sizing: border-box;
+      position: relative; z-index: 1;
+    }
+
+    /* Mobile phone frame — slim, dark */
+    .proto-phone {
+      width: 390px; height: 820px;
+      border: 1px solid #1f2548;
+      border-radius: 42px;
+      background: linear-gradient(180deg, #0a0d2a, #04051a);
+      box-shadow:
+        0 0 0 1px rgba(92,232,255,0.15),
+        0 0 80px -20px rgba(92,232,255,0.4),
+        0 0 140px -40px rgba(255,92,224,0.3),
+        0 30px 60px rgba(0,0,0,0.5);
+      padding: 12px;
+      box-sizing: border-box;
+      position: relative;
+      flex-shrink: 0;
+    }
+    .proto-phone::before {
+      content: '';
+      position: absolute;
+      top: 22px; left: 50%; transform: translateX(-50%);
+      width: 100px; height: 28px; background: #04051a;
+      border-radius: 16px; z-index: 5;
+    }
+    .proto-phone-inner {
+      width: 100%; height: 100%;
+      border-radius: 32px;
+      overflow: hidden;
+      background: #04051a;
+      position: relative;
+    }
+
+    /* Desktop window — sci-fi terminal aesthetic */
+    .proto-window {
+      width: min(1180px, calc(100vw - 80px));
+      height: min(760px, calc(100vh - 80px));
+      min-height: 620px;
+      border: 1px solid rgba(92,232,255,0.35);
+      border-radius: 14px;
+      background: #04051a;
+      box-shadow:
+        0 0 0 1px rgba(92,232,255,0.1),
+        0 0 80px -20px rgba(92,232,255,0.35),
+        0 0 140px -40px rgba(255,92,224,0.25),
+        0 30px 60px rgba(0,0,0,0.5);
+      overflow: hidden;
+      display: flex; flex-direction: column;
+      position: relative;
+    }
+    .proto-window-chrome {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--line);
+      display: flex; align-items: center; gap: 10px;
+      background: rgba(4,5,26,0.7);
+      backdrop-filter: blur(10px);
+    }
+    .proto-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    .proto-url {
+      flex: 1; padding: 4px 12px;
+      border: 1px solid var(--line);
+      border-radius: 6px; background: rgba(8,10,28,0.7);
+      font-family: var(--mono); font-size: 11px;
+      color: var(--ink-soft);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .proto-url .nx-led {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--cyan); box-shadow: 0 0 6px var(--cyan);
+    }
+    .proto-body { flex: 1; overflow: hidden; position: relative; }
+
+    /* hint banner */
+    .proto-hint {
+      position: fixed; top: 18px; left: 50%; transform: translateX(-50%);
+      padding: 8px 18px;
+      background: rgba(4,5,26,0.85);
+      border: 1px solid var(--cyan);
+      border-radius: 20px;
+      box-shadow: 0 0 24px -6px var(--cyan);
+      font-family: var(--display);
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      text-shadow: 0 0 8px var(--cyan);
+      z-index: 100;
+      pointer-events: none;
+      backdrop-filter: blur(10px);
+    }
+
+    /* Tweaks panel — restyle to fit neon */
+    .twk-panel {
+      background: rgba(4,5,26,0.92) !important;
+      border: 1px solid rgba(92,232,255,0.4) !important;
+      box-shadow: 0 0 30px -8px var(--cyan) !important;
+      color: var(--ink) !important;
+      font-family: var(--jp) !important;
+    }
+    .twk-panel * { font-family: inherit !important; }
+    .twk-title { color: var(--cyan) !important; text-shadow: 0 0 8px var(--cyan); }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <script type="text/babel" src="tweaks-panel.jsx"></script>
+  <script type="text/babel" src="neon-i18n.jsx"></script>
+  <script type="text/babel" src="neon-ui.jsx"></script>
+  <script type="text/babel" src="neon-screens.jsx"></script>
+  <script type="text/babel" src="neon-screens-desktop.jsx"></script>
+  <script type="text/babel" src="neon-maps.jsx"></script>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+      "device": "mobile",
+      "showHints": true,
+      "ambientStars": true,
+      "lang": "ja",
+      "reverse": false,
+      "level": 25
+    }/*EDITMODE-END*/;
+
+    function App() {
+      const [tw, setTweak] = useTweaks(TWEAK_DEFAULTS);
+      const [screen, setScreen] = useState('login');
+      const [pickedBox, setPickedBox] = useState(2);
+      const [selectedMap, setSelectedMap] = useState(0);
+      const [sessionSource, setSessionSource] = useState('home'); // 'home' | 'box'
+      const [hint, setHint] = useState(null);
+
+      // expose current level to non-context consumers (the side nav avatar) so it can re-render
+      // on level changes without threading the prop through every screen
+      React.useEffect(() => { window.__currentLevel = tw.level; }, [tw.level]);
+
+      // i18n context value
+      const i18nValue = React.useMemo(() => ({
+        lang: tw.lang || 'ja',
+        reverse: !!tw.reverse,
+        level: tw.level || 7,
+        setLang: (v) => setTweak('lang', v),
+        setReverse: (v) => setTweak('reverse', !!v),
+        setLevel: (v) => setTweak('level', v),
+      }), [tw.lang, tw.reverse, tw.level]);
+
+      useEffect(() => {
+        if (!tw.showHints) return;
+        const labels = {
+          login:    '① LOGIN',
+          maps:     'COSMOS · 宇宙地図',
+          home:     '② PLAY',
+          result_ok:'③ RESULT · CORRECT',
+          result_ng:'③ RESULT · INCORRECT',
+          boxes:    '④ NEBULAE · STAR MAP',
+          boxquiz:  '④ NEBULA QUIZ · CONTINUOUS',
+          list:     '⑤ CODEX',
+          import:   '⑥ IMPORT',
+          stats:    '⑦ PROFILE',
+          settings: '⑧ SETTINGS',
+          empty:    '⓪ NO SIGNAL · EMPTY',
+        };
+        setHint(labels[screen] || '');
+        const t1 = setTimeout(() => setHint(null), 1500);
+        return () => clearTimeout(t1);
+      }, [screen, tw.showHints]);
+
+      const go = (s) => {
+        // when navigating away via the tab bar / side nav, leave any box session
+        if (s !== 'boxquiz' && s !== 'result_ok' && s !== 'result_ng') {
+          setSessionSource('home');
+        }
+        setScreen(s);
+      };
+      const onAnswer = (ok) => setScreen(ok ? 'result_ok' : 'result_ng');
+      const onNext = () => {
+        // sticky box quiz: stay in the same nebula's quiz until user exits
+        if (sessionSource === 'box') setScreen('boxquiz');
+        else setScreen('home');
+      };
+      const onExitSession = () => {
+        setSessionSource('home');
+        setScreen('boxes');
+      };
+      const onPick = (n) => {
+        setPickedBox(n);
+        setSessionSource('box');
+        setScreen('boxquiz');
+      };
+      const onImport = () => setScreen('import');
+
+      const nebula = NEBULAE[pickedBox - 1];
+      const sessionLabel = sessionSource === 'box' && nebula
+        ? `${nebula.name.toUpperCase()} · N${nebula.n} · ${nebula.range}`
+        : null;
+      const inBoxResult = sessionSource === 'box' ? onExitSession : undefined;
+
+      const Mobile = () => {
+        switch (screen) {
+          case 'login':     return <NxLogin onNav={s => go(s === 'home' ? 'maps' : s)} />;
+          case 'empty':     return <NxEmpty onNav={go} onImport={onImport} />;
+          case 'maps':      return <NxMap onNav={go} level={tw.level} selectedMap={selectedMap} setSelectedMap={setSelectedMap} />;
+          case 'home':      return <NxMain onNav={go} onAnswer={onAnswer} reverse={tw.reverse} />;
+          case 'result_ok': return <NxResultOK onNav={go} onNext={onNext} onExit={inBoxResult} sessionLabel={sessionLabel}/>;
+          case 'result_ng': return <NxResultNG onNav={go} onNext={onNext} onExit={inBoxResult} sessionLabel={sessionLabel}/>;
+          case 'boxes':     return <NxBoxes onNav={go} onPick={onPick} selected={pickedBox} />;
+          case 'boxquiz':   return <NxBoxQuiz onNav={go} onAnswer={onAnswer} onExit={onExitSession} box={pickedBox} reverse={tw.reverse} />;
+          case 'list':      return <NxList onNav={go} />;
+          case 'import':    return <NxImport onNav={go} />;
+          case 'stats':     return <NxStats onNav={go} level={tw.level} />;
+          case 'settings':  return <NxSettings onNav={go} />;
+          default:          return <NxMain onNav={go} onAnswer={onAnswer} reverse={tw.reverse} />;
+        }
+      };
+
+      const Desktop = () => {
+        switch (screen) {
+          case 'login':     return <NxLoginDesktop onNav={s => go(s === 'home' ? 'maps' : s)} />;
+          case 'empty':     return <NxEmptyDesktop onNav={go} onImport={onImport} />;
+          case 'maps':      return <NxMapDesktop onNav={go} level={tw.level} selectedMap={selectedMap} setSelectedMap={setSelectedMap} />;
+          case 'home':      return <NxMainDesktop onNav={go} onAnswer={onAnswer} reverse={tw.reverse} />;
+          case 'result_ok': return <NxMainDesktop onNav={go} onAnswer={onAnswer} reverse={tw.reverse} />;
+          case 'result_ng': return <NxMainDesktop onNav={go} onAnswer={onAnswer} reverse={tw.reverse} />;
+          case 'boxes':     return <NxBoxesDesktop onNav={go} onPick={onPick} selected={pickedBox} />;
+          case 'boxquiz':   return <NxBoxesDesktop onNav={go} onPick={onPick} selected={pickedBox} />;
+          case 'list':      return <NxListDesktop onNav={go} />;
+          case 'import':    return <NxImportDesktop onNav={go} />;
+          case 'stats':     return <NxStatsDesktop onNav={go} level={tw.level} />;
+          case 'settings':  return <NxSettingsDesktop onNav={go} />;
+          default:          return <NxMainDesktop onNav={go} onAnswer={onAnswer} reverse={tw.reverse} />;
+        }
+      };
+
+      // On desktop, the result_ok / result_ng & boxquiz states route to the main/boxes screens
+      // (since the side nav is always visible). When in a box session on desktop, we overlay
+      // a small "continuous session" banner with an exit option.
+      const showBoxBanner = tw.device === 'desktop' && sessionSource === 'box' && ['boxquiz', 'result_ok', 'result_ng'].includes(screen);
+
+      const url = {
+        login: 'vocab.app/login', empty: 'vocab.app/codex',
+        maps: `vocab.app/cosmos/map-${selectedMap + 1}`,
+        home: 'vocab.app/play', boxes: 'vocab.app/nebulae', boxquiz: 'vocab.app/nebulae/' + pickedBox + '/quiz',
+        list: 'vocab.app/codex', import: 'vocab.app/import', stats: 'vocab.app/profile',
+        settings: 'vocab.app/settings',
+        result_ok: 'vocab.app/play', result_ng: 'vocab.app/play',
+      }[screen] || 'vocab.app';
+
+      return (
+        <I18nContext.Provider value={i18nValue}>
+          {/* page-wide ambient constellation */}
+          {tw.ambientStars && (
+            <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none' }}>
+              <Constellation density={0.6} mode="wide" accentLines={false} />
+            </div>
+          )}
+
+          {hint && <div className="proto-hint">{hint}</div>}
+
+          {tw.device === 'desktop' ? (
+            <div className="proto-window">
+              <div className="proto-window-chrome">
+                <span className="proto-dot" style={{ background: 'rgba(255,92,122,0.7)', boxShadow: '0 0 6px rgba(255,92,122,0.8)' }}/>
+                <span className="proto-dot" style={{ background: 'rgba(255,210,92,0.7)', boxShadow: '0 0 6px rgba(255,210,92,0.8)' }}/>
+                <span className="proto-dot" style={{ background: 'rgba(92,255,157,0.7)', boxShadow: '0 0 6px rgba(92,255,157,0.8)' }}/>
+                <div className="proto-url"><span className="nx-led"/>{url}</div>
+                <span style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--ink-mute)' }}>SECURE · USER:Yamada</span>
+              </div>
+              <div className="proto-body" style={{ position: 'relative' }}>
+                <Desktop />
+                {showBoxBanner && nebula && (
+                  <DesktopBoxBanner nebula={nebula} screen={screen}
+                    onAnswer={onAnswer} onNext={onNext} onExit={onExitSession}
+                    reverse={tw.reverse}/>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="proto-phone">
+              <div className="proto-phone-inner"><Mobile /></div>
+            </div>
+          )}
+
+          <TweaksPanel title="Tweaks">
+            <TweakSection label="表示 · Display">
+              <TweakRadio
+                label="デバイス · Device"
+                value={tw.device}
+                onChange={(v) => setTweak('device', v)}
+                options={[
+                  { value: 'mobile',  label: '📱 モバイル' },
+                  { value: 'desktop', label: '💻 デスクトップ' },
+                ]}
+              />
+              <TweakToggle
+                label="画面ヒント"
+                value={tw.showHints}
+                onChange={(v) => setTweak('showHints', v)}
+              />
+              <TweakToggle
+                label="背景の星座"
+                value={tw.ambientStars}
+                onChange={(v) => setTweak('ambientStars', v)}
+              />
+            </TweakSection>
+
+            <TweakSection label="学習 · Study">
+              <TweakSelect
+                label="言語 / Language"
+                value={tw.lang}
+                onChange={(v) => setTweak('lang', v)}
+                options={LANGS.map(L => ({ value: L.value, label: L.label }))}
+              />
+              <TweakToggle
+                label="リバース (EN ↔ JA)"
+                value={tw.reverse}
+                onChange={(v) => setTweak('reverse', v)}
+              />
+              <TweakSlider
+                label="Level (preview)"
+                value={tw.level}
+                min={1}
+                max={100}
+                step={1}
+                onChange={(v) => setTweak('level', v)}
+              />
+            </TweakSection>
+
+            <TweakSection label="画面ジャンプ">
+              <TweakSelect
+                label="画面"
+                value={screen}
+                onChange={(v) => go(v)}
+                options={[
+                  { value: 'login',     label: '① LOGIN' },
+                  { value: 'maps',      label: 'COSMOS · 宇宙地図' },
+                  { value: 'empty',     label: '⓪ EMPTY' },
+                  { value: 'home',      label: '② PLAY' },
+                  { value: 'result_ok', label: '③ RESULT (正解)' },
+                  { value: 'result_ng', label: '③ RESULT (不正解)' },
+                  { value: 'boxes',     label: '④ NEBULAE' },
+                  { value: 'boxquiz',   label: '④ NEBULA QUIZ' },
+                  { value: 'list',      label: '⑤ CODEX' },
+                  { value: 'import',    label: '⑥ IMPORT' },
+                  { value: 'stats',     label: '⑦ PROFILE' },
+                  { value: 'settings',  label: '⑧ SETTINGS' },
+                ]}
+              />
+              <TweakSelect
+                label="Nebula"
+                value={String(pickedBox)}
+                onChange={(v) => setPickedBox(parseInt(v))}
+                options={NEBULAE.map(b => ({
+                  value: String(b.n),
+                  label: `N${b.n} · ${b.name.toUpperCase()}${b.n === 1 ? ' (苦手)' : b.n === 7 ? ' (得意)' : ''}`,
+                }))}
+              />
+              <TweakSelect
+                label="Map"
+                value={String(selectedMap)}
+                onChange={(v) => setSelectedMap(parseInt(v))}
+                options={MAPS.map((m, i) => ({
+                  value: String(i),
+                  label: `${i + 1}. ${m.name}`,
+                }))}
+              />
+            </TweakSection>
+          </TweaksPanel>
+        </I18nContext.Provider>
+      );
+    }
+
+    // Desktop overlay: when in a box-quiz session, surface the boxquiz UI as a modal
+    // on top of the side-nav layout, with an exit button. This keeps the side nav visible
+    // so the user can still see their location, while making the "sticky session" behavior
+    // explicit. Result states overlay the result card; user must click EXIT to return.
+    function DesktopBoxBanner({ nebula, screen, onAnswer, onNext, onExit, reverse }) {
+      const queryWord = reverse ? '几帳面な' : 'meticulous';
+      const cs = reverse
+        ? ['meticulous', 'obfuscate', 'gregarious', 'lucid']
+        : ['几帳面な', '不明瞭にする', '社交的な', '明快な'];
+      const isResult = screen === 'result_ok' || screen === 'result_ng';
+      const ok = screen === 'result_ok';
+      return (
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'rgba(4,5,26,0.78)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: 32, zIndex: 10,
+        }}>
+          <div style={{ width: '100%', maxWidth: 720, display: 'flex', flexDirection: 'column', gap: 18 }}>
+            {/* session header */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px',
+              background: 'rgba(28,34,80,0.6)', border: '1px solid ' + nebula.color, borderRadius: 10,
+              boxShadow: `0 0 24px -8px ${nebula.color}` }}>
+              <div style={{
+                width: 32, height: 32, borderRadius: '50%',
+                background: nebula.color, boxShadow: `0 0 14px ${nebula.color}`,
+                display: 'grid', placeItems: 'center',
+                color: 'var(--bg-0)', fontFamily: 'var(--display)', fontWeight: 900, fontSize: 14,
+              }}>N{nebula.n}</div>
+              <div style={{ flex: 1 }}>
+                <div className="nx-h" style={{ fontSize: 14, color: nebula.color, textShadow: `0 0 8px ${nebula.color}` }}>
+                  {nebula.name.toUpperCase()} · CONTINUOUS SESSION
+                </div>
+                <div className="nx-overline">{nebula.range} · {nebula.count} WORDS · 3 / 18</div>
+              </div>
+              <NxBtn ghost onClick={onExit}>EXIT</NxBtn>
+            </div>
+
+            {!isResult ? (
+              <NxCard glow="mag" bracket="mag" scan style={{ padding: 32, textAlign: 'center' }}>
+                <div className="nx-overline" style={{ color: nebula.color }}>// QUERY · 3/18</div>
+                <div className="nx-h mag-glow" style={{ fontSize: 64, marginTop: 12, color: nebula.color }}>{queryWord}</div>
+                <div className="nx-mono" style={{ marginTop: 6 }}>/ məˈtɪk.jə.ləs /</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 24 }}>
+                  {cs.map((c, i) => (
+                    <NxBtn key={i} choice onClick={() => onAnswer(i === 0)} style={{ padding: 16, fontSize: 17, justifyContent: 'center' }}>
+                      <span className="nx-mono" style={{ marginRight: 8, fontSize: 12 }}>{i + 1}.</span>
+                      {c}
+                    </NxBtn>
+                  ))}
+                </div>
+              </NxCard>
+            ) : (
+              <NxCard glow={ok ? 'cyan' : 'red'} bracket={ok ? false : false} style={{ padding: 28, textAlign: 'center' }}>
+                <div style={{
+                  width: 84, height: 84, margin: '0 auto', borderRadius: '50%',
+                  border: '1.4px solid ' + (ok ? 'var(--green)' : 'var(--red)'),
+                  display: 'grid', placeItems: 'center',
+                  boxShadow: '0 0 30px ' + (ok ? 'var(--green)' : 'var(--red)'),
+                }}>
+                  <NxIcon kind={ok ? 'check' : 'x'} size={48} color={ok ? 'var(--green)' : 'var(--red)'} glow />
+                </div>
+                <div className="nx-h" style={{
+                  fontSize: 28, marginTop: 14,
+                  color: ok ? 'var(--green)' : 'var(--red)',
+                  textShadow: '0 0 16px ' + (ok ? 'rgba(92,255,157,0.6)' : 'rgba(255,92,122,0.6)'),
+                }}>{ok ? 'CORRECT' : 'INCORRECT'}</div>
+                <div className="nx-overline" style={{ marginTop: 4 }}>
+                  meticulous = 几帳面な
+                </div>
+                <div style={{ display: 'flex', gap: 10, marginTop: 22, justifyContent: 'center' }}>
+                  <NxBtn ghost onClick={onExit}>EXIT TO MAP</NxBtn>
+                  <NxBtn primary lg onClick={onNext}>NEXT IN {nebula.name.toUpperCase()} →</NxBtn>
+                </div>
+              </NxCard>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>

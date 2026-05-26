@@ -1,0 +1,217 @@
+/* neon-i18n.jsx — language context + translations (en/ja/zh/ko) */
+
+// translation dictionary
+const TR = {
+  // ─── nav / sections
+  PLAY:        { en: 'PLAY',     ja: 'PLAY',     zh: '练习',     ko: '플레이' },
+  NEBULAE:     { en: 'NEBULAE',  ja: 'NEBULAE',  zh: '星云',     ko: '성운' },
+  CODEX:       { en: 'CODEX',    ja: 'CODEX',    zh: '词库',     ko: '도감' },
+  IMPORT:      { en: 'IMPORT',   ja: 'IMPORT',   zh: '导入',     ko: '가져오기' },
+  PROFILE:     { en: 'PROFILE',  ja: 'PROFILE',  zh: '档案',     ko: '프로필' },
+  SETTINGS:    { en: 'SETTINGS', ja: 'SETTINGS', zh: '设置',     ko: '설정' },
+  MAPS:        { en: 'COSMOS',   ja: 'COSMOS',   zh: '星图',     ko: '코스모스' },
+
+  MAPS_SUB:    { en: 'Cosmic atlas',        ja: '宇宙地図',       zh: '宇宙图谱',         ko: '우주 지도' },
+  MAPS_HEAD:   { en: 'COSMOS · 宇宙地図',   ja: 'COSMOS · 宇宙地図', zh: 'COSMOS · 宇宙图谱', ko: 'COSMOS · 우주 지도' },
+  GALAXY_TOUR: { en: 'GALAXY TOUR',         ja: 'GALAXY TOUR',     zh: '星系导览',         ko: '갤럭시 투어' },
+  NEXT_CHALLENGE:{ en: 'NEXT CHALLENGE',    ja: '次のチャレンジ',   zh: '下一关卡',         ko: '다음 도전' },
+  LAUNCH_STAGE:{ en: 'LAUNCH STAGE',        ja: 'ステージ開始',     zh: '开始关卡',         ko: '스테이지 시작' },
+  PREV:        { en: 'PREV',                ja: '前へ',           zh: '上一个',           ko: '이전' },
+  NEXT_MAP:    { en: 'NEXT MAP',            ja: '次のマップ',     zh: '下一星图',         ko: '다음 지도' },
+  LOCKED:      { en: 'LOCKED',              ja: 'LOCKED',         zh: '已锁',             ko: '잠김' },
+
+  PLAY_SUB:    { en: 'All words mode',     ja: '全単語モード',   zh: '全词模式',         ko: '전체 모드' },
+  NEBULAE_SUB: { en: '7 star clusters',    ja: '7つの星雲',      zh: '7个星云',          ko: '7개의 성운' },
+  CODEX_SUB:   { en: 'Word library',       ja: '単語管理',       zh: '词汇管理',         ko: '단어 관리' },
+  IMPORT_SUB:  { en: 'Add new entries',    ja: 'インポート',     zh: '添加新词',         ko: '새 항목 추가' },
+  PROFILE_SUB: { en: 'Stats & level',      ja: '統計 & レベル',  zh: '统计与等级',       ko: '통계 & 레벨' },
+  SETTINGS_SUB:{ en: 'Preferences',        ja: '設定',           zh: '偏好设置',         ko: '환경 설정' },
+
+  // ─── login
+  TAGLINE_1:        { en: 'Cast light again on the words',          ja: '覚えるのが苦手な単語に、',    zh: '为难记的单词',       ko: '외우기 어려운 단어에' },
+  TAGLINE_2:        { en: 'you struggle to remember.',              ja: 'もう一度、光を当てる。',      zh: '再次点亮一束光。',   ko: '다시 빛을 비춥니다.' },
+  LOGIN_GOOGLE:     { en: 'Continue with Google',                   ja: 'Googleでログイン',           zh: '使用 Google 登录',   ko: 'Google로 로그인' },
+  LOGIN_GUEST:      { en: 'Start as guest',                         ja: 'ゲストで起動',                zh: '以访客身份开始',     ko: '게스트로 시작' },
+  LOGIN_FINE:       { en: 'DATA · ENCRYPTED · USER-SCOPED · FIRESTORE', ja: 'DATA · ENCRYPTED · USER-SCOPED · FIRESTORE',
+                      zh: '数据 · 加密 · 用户隔离 · FIRESTORE', ko: '데이터 · 암호화 · 사용자별 · FIRESTORE' },
+
+  // ─── play / flashcard
+  QUERY:            { en: '// QUERY',              ja: '// QUERY',              zh: '// 题目',         ko: '// 문제' },
+  PICK_MEANING:     { en: '── pick the meaning ──', ja: '─── 意味を選択 ───',     zh: '── 选择含义 ──',   ko: '── 의미를 선택 ──' },
+  PICK_WORD:        { en: '── pick the word ──',    ja: '─── 単語を選択 ───',     zh: '── 选择单词 ──',   ko: '── 단어를 선택 ──' },
+  SESSION:          { en: 'SESSION',                ja: 'SESSION',               zh: '本次',            ko: '세션' },
+  STREAK:           { en: 'STREAK',                 ja: 'STREAK',                zh: '连胜',            ko: '연속 정답' },
+  HINT:             { en: 'HINT',                   ja: 'HINT',                  zh: '提示',            ko: '힌트' },
+  SKIP:             { en: 'SKIP',                   ja: 'SKIP',                  zh: '跳过',            ko: '건너뛰기' },
+  CORRECT_LOG:      { en: 'CORRECT',                ja: '正解',                  zh: '正确',            ko: '정답' },
+  WRONG_LOG:        { en: 'WRONG',                  ja: '不正解',                zh: '错误',            ko: '오답' },
+  RECENT_LOG:       { en: 'RECENT LOG',             ja: 'RECENT LOG',            zh: '最近记录',        ko: '최근 기록' },
+  SHORTCUTS:        { en: 'SHORTCUTS',              ja: 'SHORTCUTS',             zh: '快捷键',          ko: '단축키' },
+  SHORT_PICK:       { en: 'Pick choice',            ja: '選択肢を選ぶ',           zh: '选择答案',        ko: '답 선택' },
+  SHORT_NEXT:       { en: 'Next',                   ja: '次へ',                  zh: '下一题',          ko: '다음' },
+  SHORT_HINT:       { en: 'Hint (future)',          ja: 'ヒント (将来)',          zh: '提示 (待开发)',    ko: '힌트 (예정)' },
+  SHORT_SPEAK:      { en: 'Read aloud (future)',    ja: '読み上げ (将来)',        zh: '朗读 (待开发)',    ko: '읽기 (예정)' },
+  ATT_SHORT:        { en: 'ATT',                    ja: 'ATT',                   zh: '试',              ko: '시도' },
+  ACC_SHORT:        { en: 'ACC',                    ja: 'ACC',                   zh: '率',              ko: '정확도' },
+
+  // ─── result
+  RESULT_OK_TITLE:  { en: 'CORRECT',                ja: 'CORRECT',               zh: 'CORRECT',         ko: 'CORRECT' },
+  RESULT_NG_TITLE:  { en: 'INCORRECT',              ja: 'INCORRECT',             zh: 'INCORRECT',       ko: 'INCORRECT' },
+  RESULT_OK_LINE:   { en: "That's right!",          ja: 'その通り',              zh: '答对了',          ko: '정답!' },
+  RESULT_NG_LINE:   { en: 'So close.',              ja: '惜しい',                zh: '差一点',          ko: '아쉽다' },
+  SIGNAL_LOCKED:    { en: 'SIGNAL · LOCKED',        ja: 'SIGNAL · LOCKED',       zh: 'SIGNAL · LOCKED', ko: 'SIGNAL · LOCKED' },
+  SIGNAL_LOST:      { en: 'SIGNAL · LOST',          ja: 'SIGNAL · LOST',         zh: 'SIGNAL · LOST',   ko: 'SIGNAL · LOST' },
+  YOUR_ANSWER:      { en: 'YOUR ANSWER',            ja: 'YOUR ANSWER',           zh: '你的回答',        ko: '내 답안' },
+  CORRECT_MEANING:  { en: 'CORRECT MEANING',        ja: 'CORRECT MEANING',       zh: '正确含义',        ko: '정답' },
+  NEXT:             { en: 'NEXT',                   ja: 'NEXT',                  zh: '下一题',          ko: '다음' },
+  RETRY:            { en: 'RETRY',                  ja: 'RETRY',                 zh: '重试',            ko: '재시도' },
+  EXIT_SESSION:     { en: 'EXIT',                   ja: '終了',                  zh: '退出',            ko: '나가기' },
+  BACK_TO_MAP:      { en: 'STAR MAP',               ja: 'マップへ',              zh: '返回星图',        ko: '성도로' },
+  STREAK_RESET:     { en: 'STREAK RESET · 4 → 0',   ja: 'STREAK RESET · 4 → 0',  zh: '连胜重置 · 4 → 0', ko: '연속 정답 초기화 · 4 → 0' },
+  NEXT_MILESTONE:   { en: 'NEXT MILESTONE 10',      ja: 'NEXT MILESTONE 10',     zh: '下一里程碑 10',   ko: '다음 목표 10' },
+
+  // ─── nebulae
+  NEBULAE_HEAD:     { en: 'NEBULAE · 7 CLUSTERS',   ja: 'NEBULAE · 7星雲',       zh: 'NEBULAE · 7星云', ko: 'NEBULAE · 7성운' },
+  NEBULAE_SUBHEAD:  { en: 'Leitner system · accuracy → cluster',
+                      ja: 'LEITNER SYSTEM · ACCURACY → CLUSTER',
+                      zh: 'Leitner 系统 · 准确率 → 星团',
+                      ko: '라이트너 시스템 · 정확도 → 성단' },
+  STAR_MAP:         { en: 'STAR MAP',               ja: 'STAR MAP',              zh: '星图',            ko: '성도' },
+  WEAK:             { en: 'weak',                   ja: '苦手',                  zh: '薄弱',            ko: '약함' },
+  STRONG:           { en: 'strong',                 ja: '得意',                  zh: '熟练',            ko: '능숙' },
+  PLAY_FROM_CLUSTER:{ en: 'Play from cluster',      ja: 'この星雲で出題',         zh: '从此星云出题',    ko: '이 성운에서 출제' },
+  WORDS_EXCERPT:    { en: 'WORDS · excerpt',        ja: 'WORDS · 抜粋',          zh: '词汇 · 节选',     ko: '단어 · 발췌' },
+  MORE_OTHERS:      { en: '+ many more…',           ja: '+ 他多数…',             zh: '+ 还有更多…',     ko: '+ 그 외 다수…' },
+
+  // ─── codex
+  CODEX_HEAD:       { en: 'CODEX · words',          ja: 'CODEX · 単語',          zh: '词库 · 词汇',     ko: '도감 · 단어' },
+  ENTRIES:          { en: 'ENTRIES',                ja: 'ENTRIES',               zh: '条目',            ko: '항목' },
+  SELECTED:         { en: 'SELECTED',               ja: 'SELECTED',              zh: '已选',            ko: '선택됨' },
+  SEARCH_PH:        { en: 'Search (word or meaning)…',  ja: '検索 (word or 意味)…',  zh: '搜索（单词或含义）…', ko: '검색 (단어 또는 의미)…' },
+  ALL:              { en: 'ALL',                    ja: 'ALL',                   zh: '全部',            ko: '전체' },
+  SORT_BY:          { en: 'SORT',                   ja: '並替',                  zh: '排序',            ko: '정렬' },
+  SORT_DEFAULT:     { en: 'Default',                ja: '既定',                  zh: '默认',            ko: '기본' },
+  SORT_ACC_ASC:     { en: 'Accuracy ↑',             ja: '正答率 ↑',              zh: '准确率 ↑',        ko: '정확도 ↑' },
+  SORT_ACC_DESC:    { en: 'Accuracy ↓',             ja: '正答率 ↓',              zh: '准确率 ↓',        ko: '정확도 ↓' },
+  SORT_ATT_DESC:    { en: 'Attempts ↓',             ja: '試行 ↓',                zh: '尝试 ↓',          ko: '시도 ↓' },
+  SORT_AZ:          { en: 'A → Z',                  ja: 'A → Z',                 zh: 'A → Z',           ko: 'A → Z' },
+  DELETE:           { en: 'DELETE',                 ja: 'DELETE',                zh: '删除',            ko: '삭제' },
+  SELECT_ALL:       { en: 'ALL',                    ja: 'すべて',                zh: '全选',            ko: '전체 선택' },
+  WORD_COL:         { en: 'WORD',                   ja: 'WORD',                  zh: '单词',            ko: '단어' },
+  MEANING_COL:      { en: 'MEANING',                ja: 'MEANING',               zh: '含义',            ko: '의미' },
+  NEBULA_COL:       { en: 'NEBULA',                 ja: 'NEBULA',                zh: '星云',            ko: '성운' },
+  ACCURACY_COL:     { en: 'ACCURACY',               ja: 'ACCURACY',              zh: '准确率',          ko: '정확도' },
+  ATTEMPTS_COL:     { en: 'ATTEMPTS',               ja: 'ATTEMPTS',              zh: '尝试',            ko: '시도' },
+  NEW_ENTRY:        { en: 'NEW',                    ja: 'NEW',                   zh: '新建',            ko: '새로' },
+  SEARCH:           { en: 'SEARCH',                 ja: 'SEARCH',                zh: '搜索',            ko: '검색' },
+
+  // ─── import
+  DROP_FILE:        { en: 'DROP FILE HERE',         ja: 'DROP FILE HERE',        zh: '将文件拖到此处',   ko: '파일을 끌어다 놓으세요' },
+  BROWSE:           { en: 'BROWSE…',                ja: 'BROWSE…',               zh: '浏览…',           ko: '찾아보기…' },
+  OR_PASTE:         { en: 'OR PASTE',               ja: 'OR PASTE',              zh: '或粘贴',          ko: '또는 붙여넣기' },
+  OR_PASTE_BELOW:   { en: 'OR PASTE BELOW',         ja: 'OR PASTE BELOW',        zh: '或粘贴在下方',    ko: '또는 아래에 붙여넣기' },
+  DELIMITER:        { en: 'Delimiter:',             ja: '区切り:',               zh: '分隔符：',        ko: '구분자:' },
+  COMMA:            { en: 'Comma',                  ja: 'カンマ',                zh: '逗号',            ko: '쉼표' },
+  TAB:              { en: 'Tab',                    ja: 'タブ',                  zh: '制表',            ko: '탭' },
+  NEWLINE:          { en: 'Newline',                ja: '改行',                  zh: '换行',            ko: '줄바꿈' },
+  AUTO_COMMA:       { en: 'AUTO · COMMA',           ja: 'AUTO · COMMA',          zh: 'AUTO · COMMA',    ko: 'AUTO · COMMA' },
+  PREVIEW:          { en: 'PREVIEW',                ja: 'PREVIEW',               zh: '预览',            ko: '미리보기' },
+  ADD_N_WORDS:      { en: 'Add N entries · existing unaffected',
+                      ja: 'N 単語を追加 · 既存は影響しません',
+                      zh: '添加 N 个条目 · 不影响已有词',
+                      ko: 'N개 추가 · 기존 항목은 영향 없음' },
+  ADD_ACTION:       { en: 'Add →',                  ja: '追加する →',            zh: '添加 →',          ko: '추가 →' },
+  CANCEL:           { en: 'CANCEL',                 ja: 'CANCEL',                zh: '取消',            ko: '취소' },
+
+  // ─── profile
+  PROFILE_HEAD:     { en: 'PROFILE · stats',        ja: 'PROFILE · 統計',        zh: '档案 · 统计',     ko: '프로필 · 통계' },
+  RANK_APPRENTICE:  { en: 'Apprentice Scholar',     ja: '見習い学者',            zh: '见习学者',        ko: '견습 학자' },
+  APPRENTICE_SUB:   { en: 'APPRENTICE · LV·07',     ja: 'APPRENTICE · LV·07',    zh: '见习 · LV·07',    ko: '견습 · LV·07' },
+  STAT_TOTAL:       { en: 'Total answers',          ja: '累計解答',              zh: '累计回答',        ko: '누적 답변' },
+  STAT_AVG:         { en: 'Avg accuracy',           ja: '平均正答率',            zh: '平均准确率',      ko: '평균 정확도' },
+  STAT_MAX_STREAK:  { en: 'MAX STREAK',             ja: 'MAX STREAK',            zh: '最长连胜',        ko: '최고 연속 정답' },
+  STAT_WORDS:       { en: 'Words registered',       ja: '登録単語',              zh: '已注册词',        ko: '등록 단어' },
+  NEBULAE_BREAKDOWN:{ en: 'NEBULAE · answers / accuracy',
+                      ja: 'NEBULAE · 回答数 / 正答率',
+                      zh: 'NEBULAE · 回答数 / 准确率',
+                      ko: 'NEBULAE · 답변 / 정확도' },
+  FOCUS_ZONE:       { en: 'N1–N4 is the active study zone',
+                      ja: 'N1–N4 が学習集中ゾーン',
+                      zh: 'N1–N4 是重点学习区',
+                      ko: 'N1–N4가 집중 학습 구간' },
+  BADGES:           { en: 'BADGES',                 ja: 'BADGES',                zh: '徽章',            ko: '배지' },
+  LEVEL_CURVE:      { en: 'LEVEL CURVE',            ja: 'LEVEL CURVE',           zh: '等级曲线',        ko: '레벨 곡선' },
+  XP_FORMULA:       { en: 'NEEDED XP = 10 × LV²',   ja: 'NEEDED XP = 10 × LV²',  zh: '所需 XP = 10 × LV²', ko: '필요 XP = 10 × LV²' },
+  XP_REMAIN:        { en: '490 / 640 XP · 150 to LV·08',
+                      ja: '490 / 640 XP · LV·08 まで残り 150',
+                      zh: '490 / 640 XP · 距 LV·08 还差 150',
+                      ko: '490 / 640 XP · LV·08까지 150 남음' },
+
+  // ─── empty
+  NO_SIGNAL:        { en: 'NO SIGNAL',              ja: 'NO SIGNAL',             zh: '无信号',          ko: '신호 없음' },
+  EMPTY_DESC:       { en: 'No words yet.\nPaste a CSV to ignite the galaxy.',
+                      ja: 'まだ単語がありません。\nCSV をペーストして、銀河を起動しましょう。',
+                      zh: '暂无单词。\n粘贴 CSV 以点亮星河。',
+                      ko: '단어가 아직 없어요.\nCSV를 붙여 넣어 은하를 가동하세요.' },
+  IMPORT_BTN:       { en: 'Import',                 ja: 'インポート',             zh: '导入',           ko: '가져오기' },
+  TRY_SAMPLE:       { en: 'Try sample data',        ja: 'サンプルで起動',         zh: '使用示例数据',    ko: '샘플로 시작' },
+
+  // ─── settings
+  SETTINGS_HEAD:    { en: 'SETTINGS · preferences', ja: 'SETTINGS · 設定',       zh: '设置 · 偏好',     ko: '설정 · 환경' },
+  STUDY_SECTION:    { en: 'STUDY',                  ja: '学習',                  zh: '学习',            ko: '학습' },
+  REVERSE_LABEL:    { en: 'Reverse mode',           ja: 'リバースモード',         zh: '反向模式',        ko: '리버스 모드' },
+  REVERSE_DESC:     { en: 'Show meaning, pick the word (instead of word → meaning).',
+                      ja: '「意味」を出題して、単語を選択する形式に切り替えます。',
+                      zh: '出题显示含义，由你选择对应的单词。',
+                      ko: '의미를 출제하고, 단어를 선택하는 형식으로 전환합니다.' },
+  REVERSE_ARROW:    { en: 'EN → JA',                ja: 'EN → JA',               zh: 'EN → JA',         ko: 'EN → JA' },
+  REVERSE_ARROW_ON: { en: 'JA → EN',                ja: 'JA → EN',               zh: 'JA → EN',         ko: 'JA → EN' },
+  LANG_SECTION:     { en: 'LANGUAGE',               ja: '言語',                  zh: '语言',            ko: '언어' },
+  LANG_LABEL:       { en: 'App language',           ja: 'アプリ全体の言語',       zh: '应用语言',        ko: '앱 언어' },
+  LANG_DESC:        { en: 'Switches all UI labels. Word data stays as registered.',
+                      ja: 'UI 全体の言語を切り替えます。単語データはそのままです。',
+                      zh: '切换所有界面文本。单词数据保持不变。',
+                      ko: 'UI 텍스트를 전환합니다. 단어 데이터는 그대로 유지됩니다.' },
+  ACCOUNT_SECTION:  { en: 'ACCOUNT',                ja: 'アカウント',             zh: '账户',           ko: '계정' },
+  SIGN_OUT:         { en: 'Sign out',               ja: 'ログアウト',             zh: '退出登录',        ko: '로그아웃' },
+  DELETE_DATA:      { en: 'Delete all data',        ja: '全データを削除',         zh: '删除全部数据',    ko: '모든 데이터 삭제' },
+  DANGER_ZONE:      { en: 'DANGER ZONE',            ja: '危険な操作',             zh: '危险操作',        ko: '위험 구역' },
+  DANGER_DESC:      { en: 'Irreversible — all words, attempts, streaks gone.',
+                      ja: '全単語・試行・ストリークが完全に消去されます。',
+                      zh: '不可逆 — 全部单词、尝试记录、连胜将被清除。',
+                      ko: '되돌릴 수 없습니다 — 모든 단어와 기록이 사라집니다.' },
+
+  // ─── boxquiz extras
+  SESSION_PROGRESS: { en: 'SESSION',                ja: 'SESSION',               zh: '本次',            ko: '세션' },
+  OF:               { en: 'of',                     ja: '/',                     zh: '/',               ko: '/' },
+
+  // ─── system tags
+  POLARIS_PILL:     { en: 'POLARIS · N7',           ja: 'POLARIS · N7',          zh: 'POLARIS · N7',    ko: 'POLARIS · N7' },
+};
+
+// Languages we ship
+const LANGS = [
+  { value: 'ja', label: '日本語',   short: 'JA' },
+  { value: 'en', label: 'English',  short: 'EN' },
+  { value: 'zh', label: '中文',     short: 'ZH' },
+  { value: 'ko', label: '한국어',   short: 'KO' },
+];
+
+// ── Context ──
+const I18nContext = React.createContext({
+  lang: 'ja', reverse: false, level: 7,
+  setLang: () => {}, setReverse: () => {}, setLevel: () => {},
+});
+
+function useI18n() { return React.useContext(I18nContext); }
+
+function useT() {
+  const { lang } = useI18n();
+  return React.useCallback((key, fallback) => {
+    const entry = TR[key];
+    if (!entry) return fallback ?? key;
+    return entry[lang] || entry.ja || fallback || key;
+  }, [lang]);
+}
+
+Object.assign(window, { TR, LANGS, I18nContext, useI18n, useT });
