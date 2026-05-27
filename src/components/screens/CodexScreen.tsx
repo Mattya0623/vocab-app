@@ -29,6 +29,17 @@ export function CodexScreen({ onNav, desktop }: CodexScreenProps) {
     });
   };
 
+  const toggleAll = () => {
+    setSel(prev =>
+      prev.size === sorted.length ? new Set() : new Set(sorted.map(w => w.id))
+    );
+  };
+
+  const handleDelete = () => {
+    deleteWords([...sel]);
+    setSel(new Set());
+  };
+
   const SORTS: [SortKey, string][] = [
     ['default',  t('SORT_DEFAULT')],
     ['acc_asc',  t('SORT_ACC_ASC')],
@@ -47,6 +58,7 @@ export function CodexScreen({ onNav, desktop }: CodexScreenProps) {
     return arr;
   }, [words, sortBy, search]);
 
+  const allSelected = sorted.length > 0 && sel.size === sorted.length;
   const totalAttempts = words.reduce((s, w) => s + w.attempts, 0);
 
   if (desktop) {
@@ -54,31 +66,53 @@ export function CodexScreen({ onNav, desktop }: CodexScreenProps) {
       <NxDesktopShell active="list" onNav={onNav}
         title={t('CODEX_HEAD')}
         sub={`${words.length} ${t('ENTRIES')} · ${totalAttempts} ${t('ATTEMPTS_COL')}`}
-        right={<>
-          <NxBtn ghost><NxIcon kind="search" size={14} /> {t('SEARCH')}</NxBtn>
-          <NxBtn onClick={() => onNav('import')}><NxIcon kind="upload" size={14} /> {t('IMPORT')}</NxBtn>
-          <NxBtn primary><NxIcon kind="plus" size={14} /> {t('NEW_ENTRY')}</NxBtn>
-        </>}>
+        right={sel.size > 0 ? (
+          <>
+            <span className="nx-mono" style={{ color: 'var(--ink-soft)' }}>{sel.size} {t('SELECTED')}</span>
+            <NxBtn ghost onClick={toggleAll}>{t('SELECT_ALL')}</NxBtn>
+            <NxBtn red onClick={handleDelete}>
+              <NxIcon kind="trash" size={14} /> {t('DELETE')}
+            </NxBtn>
+          </>
+        ) : (
+          <>
+            <NxBtn onClick={() => onNav('import')}><NxIcon kind="upload" size={14} /> {t('IMPORT')}</NxBtn>
+            <NxBtn primary><NxIcon kind="plus" size={14} /> {t('NEW_ENTRY')}</NxBtn>
+          </>
+        )}>
         <NxCard style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: 0 }}>
-          <div style={{ padding: '12px 18px', borderBottom: '1px solid var(--line)', background: 'rgba(28,34,80,0.4)', display: 'flex', alignItems: 'center', gap: 12 }}>
-            <span className="nx-overline">{t('SORT_BY')}:</span>
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          {/* Sort + search bar */}
+          <div style={{ padding: '10px 18px', borderBottom: '1px solid var(--line)', background: 'rgba(28,34,80,0.4)', display: 'flex', alignItems: 'center', gap: 12 }}>
+            <span className="nx-overline" style={{ whiteSpace: 'nowrap' }}>{t('SORT_BY')}:</span>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', flex: 1 }}>
               {SORTS.map(([k, label]) => (
                 <span key={k} onClick={() => setSortBy(k)} className="nx-clickable">
                   <NxTag cyan={sortBy === k}>{label}</NxTag>
                 </span>
               ))}
             </div>
+            <NxInput
+              placeholder={t('SEARCH_PH')}
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              style={{ width: 200, padding: '5px 10px', fontSize: 12 }}
+            />
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '32px 1.4fr 1.6fr 100px 140px 80px 32px', padding: '12px 18px', borderBottom: '1px solid var(--line)', background: 'rgba(28,34,80,0.4)', gap: 12, alignItems: 'center' }}>
-            <div style={{ width: 16, height: 16, border: '1px solid var(--line)', borderRadius: 3 }} />
+          {/* Column headers */}
+          <div style={{ display: 'grid', gridTemplateColumns: '40px 1.4fr 1.6fr 110px 150px 80px', padding: '10px 18px', borderBottom: '1px solid var(--line)', background: 'rgba(28,34,80,0.4)', gap: 12, alignItems: 'center' }}>
+            <div
+              onClick={toggleAll}
+              className="nx-clickable"
+              style={{ width: 16, height: 16, border: `1px solid ${allSelected ? 'var(--cyan)' : 'var(--line)'}`, borderRadius: 3, background: allSelected ? 'var(--cyan)' : 'transparent', color: 'var(--bg-0)', display: 'grid', placeItems: 'center', fontSize: 10, fontWeight: 900, boxShadow: allSelected ? '0 0 8px var(--cyan)' : 'none' }}>
+              {allSelected && '✓'}
+            </div>
             <span className="nx-overline">{t('WORD_COL')}</span>
             <span className="nx-overline">{t('MEANING_COL')}</span>
             <span className="nx-overline">{t('NEBULA_COL')}</span>
             <span className="nx-overline">{t('ACCURACY_COL')}</span>
             <span className="nx-overline">{t('ATTEMPTS_COL')}</span>
-            <span />
           </div>
+          {/* Rows */}
           <div style={{ flex: 1, overflow: 'auto' }}>
             {sorted.length === 0 && (
               <div style={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: 16, textAlign: 'center' }}>
@@ -93,10 +127,14 @@ export function CodexScreen({ onNav, desktop }: CodexScreenProps) {
               </div>
             )}
             {sorted.map((w) => {
+              const checked = sel.has(w.id);
               const b = NEBULAE[boxOf(w.accuracy) - 1];
               return (
-                <div key={w.id} style={{ display: 'grid', gridTemplateColumns: '32px 1.4fr 1.6fr 100px 140px 80px 32px', padding: '12px 18px', gap: 12, alignItems: 'center', borderBottom: '1px solid rgba(118,138,220,0.1)' }}>
-                  <div style={{ width: 16, height: 16, border: '1px solid var(--line-bright)', borderRadius: 3 }} />
+                <div key={w.id} onClick={() => toggle(w.id)} className="nx-clickable"
+                  style={{ display: 'grid', gridTemplateColumns: '40px 1.4fr 1.6fr 110px 150px 80px', padding: '11px 18px', gap: 12, alignItems: 'center', borderBottom: '1px solid rgba(118,138,220,0.1)', background: checked ? 'rgba(92,232,255,0.05)' : 'transparent', transition: 'background 0.15s' }}>
+                  <div style={{ width: 16, height: 16, border: `1px solid ${checked ? 'var(--cyan)' : 'var(--line-bright)'}`, borderRadius: 3, background: checked ? 'var(--cyan)' : 'transparent', color: 'var(--bg-0)', display: 'grid', placeItems: 'center', fontSize: 10, fontWeight: 900, boxShadow: checked ? '0 0 8px var(--cyan)' : 'none' }}>
+                    {checked && '✓'}
+                  </div>
                   <span style={{ fontWeight: 600, fontSize: 15 }}>{w.word}</span>
                   <span style={{ color: 'var(--ink-soft)' }}>{w.meaning}</span>
                   <span style={{ fontFamily: 'var(--display)', fontSize: 11, letterSpacing: '0.1em', color: b.color, textShadow: `0 0 6px ${b.color}88` }}>{b.name.toUpperCase()}</span>
@@ -105,7 +143,6 @@ export function CodexScreen({ onNav, desktop }: CodexScreenProps) {
                     <span className="nx-mono" style={{ minWidth: 32, textAlign: 'right', color: w.accuracy >= 75 ? 'var(--green)' : w.accuracy >= 40 ? 'var(--amber)' : 'var(--red)' }}>{w.accuracy}%</span>
                   </div>
                   <span className="nx-mono">{w.correct_answers}/{w.attempts}</span>
-                  <NxIcon kind="dots" size={16} color="var(--ink-mute)" />
                 </div>
               );
             })}
@@ -176,8 +213,8 @@ export function CodexScreen({ onNav, desktop }: CodexScreenProps) {
       {sel.size > 0 && (
         <div style={{ padding: '10px 16px', borderTop: '1px solid var(--line)', background: 'rgba(255,92,122,0.08)', display: 'flex', gap: 10, alignItems: 'center' }}>
           <span className="nx-mono" style={{ flex: 1 }}>{sel.size} {t('SELECTED')}</span>
-          <NxBtn ghost style={{ padding: '5px 10px' }} onClick={() => setSel(new Set(sorted.map(w => w.id)))}>{t('SELECT_ALL')}</NxBtn>
-          <NxBtn red style={{ padding: '5px 12px' }} onClick={() => { deleteWords([...sel]); setSel(new Set()); }}>
+          <NxBtn ghost style={{ padding: '5px 10px' }} onClick={toggleAll}>{t('SELECT_ALL')}</NxBtn>
+          <NxBtn red style={{ padding: '5px 12px' }} onClick={handleDelete}>
             <NxIcon kind="trash" size={14} /> {t('DELETE')}
           </NxBtn>
         </div>
