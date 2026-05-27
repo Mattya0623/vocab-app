@@ -35,7 +35,7 @@ export function NebulaeScreen({ onNav, onPick, selected, desktop }: NebulaeScree
   const selWordCount = wordCounts[selected - 1];
   const wordsInSel = words.filter(w => boxOf(w.accuracy) === selected).slice(0, 6);
 
-  const StarMap = ({ height }: { height: number }) => (
+  const StarMap = ({ height }: { height: number | string }) => (
     <div style={{
       position: 'relative', height, margin: desktop ? 0 : '14px 14px 8px',
       borderRadius: 12, overflow: 'visible',
@@ -101,7 +101,7 @@ export function NebulaeScreen({ onNav, onPick, selected, desktop }: NebulaeScree
         <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: 20, height: '100%' }}>
           <NxCard bracket style={{ position: 'relative', overflow: 'hidden', padding: 0 }}>
             <div style={{ position: 'absolute', inset: 0 }}>
-              <StarMap height={0} />
+              <StarMap height="100%" />
             </div>
           </NxCard>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>

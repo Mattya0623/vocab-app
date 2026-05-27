@@ -6,7 +6,7 @@ import { NxDesktopShell } from '@/components/layout/NxDesktopShell';
 import { useT } from '@/contexts/I18nContext';
 import { useApp } from '@/contexts/AppContext';
 import { levelColor, levelTierName, levelAscension, levelToMinXp, levelToMaxXp, LEVEL_TIER_NAMES, LEVEL_COLORS } from '@/lib/level';
-import { NEBULAE } from '@/data/nebulae';
+import { NEBULAE, boxOf } from '@/data/nebulae';
 import type { Screen } from '@/types';
 
 interface ProfileScreenProps {
@@ -23,7 +23,8 @@ const BADGES = [
 
 export function ProfileScreen({ onNav, desktop }: ProfileScreenProps) {
   const t = useT();
-  const { level, xp, stats, username } = useApp();
+  const { level, xp, stats, username, words } = useApp();
+  const nebulaWordCounts = NEBULAE.map(b => words.filter(w => boxOf(w.accuracy) === b.n).length);
   const c = levelColor(level);
   const tierName = levelTierName(level);
   const asc = levelAscension(level);
@@ -79,16 +80,20 @@ export function ProfileScreen({ onNav, desktop }: ProfileScreenProps) {
         <span className="nx-overline" style={{ whiteSpace: 'nowrap', fontSize: 9 }}>{t('FOCUS_ZONE')}</span>
       </div>
       <div style={{ flex: 1, display: 'flex', alignItems: 'flex-end', gap: 6, paddingTop: 12, minHeight: 80 }}>
-        {NEBULAE.map(b => (
-          <div key={b.n} style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-            <span className="nx-mono" style={{ fontSize: 10 }}>{b.count * 4}</span>
-            <div style={{ width: '70%', height: Math.min(110, 14 + b.count * 2.4), background: `linear-gradient(180deg, ${b.color}, ${b.color}55)`, border: `1px solid ${b.color}`, boxShadow: `0 0 14px ${b.color}88`, borderRadius: '4px 4px 0 0' }} />
-            <div className="nx-h" style={{ fontSize: 10, color: b.color, textShadow: `0 0 6px ${b.color}`, marginTop: 2, letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>
-              {b.name.toUpperCase().slice(0, 3)}
+        {NEBULAE.map((b, i) => {
+          const count = nebulaWordCounts[i];
+          const maxCount = Math.max(...nebulaWordCounts, 1);
+          return (
+            <div key={b.n} style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+              <span className="nx-mono" style={{ fontSize: 10 }}>{count}</span>
+              <div style={{ width: '70%', height: Math.max(4, Math.round((count / maxCount) * 90)), background: count > 0 ? `linear-gradient(180deg, ${b.color}, ${b.color}55)` : 'rgba(118,138,220,0.15)', border: `1px solid ${count > 0 ? b.color : 'rgba(118,138,220,0.3)'}`, boxShadow: count > 0 ? `0 0 14px ${b.color}88` : 'none', borderRadius: '4px 4px 0 0' }} />
+              <div className="nx-h" style={{ fontSize: 10, color: b.color, textShadow: count > 0 ? `0 0 6px ${b.color}` : 'none', marginTop: 2, letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>
+                {b.name.toUpperCase().slice(0, 3)}
+              </div>
+              <div className="nx-overline" style={{ fontSize: 8, whiteSpace: 'nowrap' }}>N{b.n} · {b.range}</div>
             </div>
-            <div className="nx-overline" style={{ fontSize: 8, whiteSpace: 'nowrap' }}>N{b.n}</div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </NxCard>
   );
