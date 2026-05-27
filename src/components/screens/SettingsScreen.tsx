@@ -4,6 +4,7 @@ import { NxMobileHeader } from '@/components/layout/NxMobileHeader';
 import { NxTabBar } from '@/components/layout/NxTabBar';
 import { NxDesktopShell } from '@/components/layout/NxDesktopShell';
 import { useT, useI18n, LANGS } from '@/contexts/I18nContext';
+import { useApp } from '@/contexts/AppContext';
 import type { Screen } from '@/types';
 
 interface SettingsScreenProps {
@@ -14,6 +15,7 @@ interface SettingsScreenProps {
 export function SettingsScreen({ onNav, desktop }: SettingsScreenProps) {
   const t = useT();
   const { lang, reverse, setLang, setReverse } = useI18n();
+  const { user, logout } = useApp();
 
   const studySection = (
     <div>
@@ -96,13 +98,13 @@ export function SettingsScreen({ onNav, desktop }: SettingsScreenProps) {
             background: 'linear-gradient(135deg, var(--cyan), var(--mag))',
             display: 'grid', placeItems: 'center',
             color: 'var(--bg-0)', fontFamily: 'var(--display)', fontWeight: 900,
-          }}>Y</div>
+          }}>{user?.displayName?.[0]?.toUpperCase() ?? 'G'}</div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 14 }}>Yamada</div>
-            <div className="nx-overline">yamada@gmail.com</div>
+            <div style={{ fontSize: 14 }}>{user?.displayName ?? 'ゲスト'}</div>
+            <div className="nx-overline">{user?.email ?? 'guest mode'}</div>
           </div>
         </div>
-        <div onClick={() => onNav('login')} className="nx-clickable"
+        <div onClick={logout} className="nx-clickable"
           style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 10, borderBottom: '1px solid var(--line)' }}>
           <NxIcon kind="back" size={16} color="var(--ink-soft)" />
           <span style={{ flex: 1 }}>{t('SIGN_OUT')}</span>

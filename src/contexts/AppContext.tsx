@@ -1,10 +1,16 @@
 'use client';
-import { createContext, useContext, useState, useCallback, useMemo, type ReactNode } from 'react';
+import {
+  createContext, useContext, useState, useCallback, useMemo, useEffect,
+  type ReactNode,
+} from 'react';
+import type { User } from 'firebase/auth';
 import { SAMPLE_WORDS } from '@/data/words';
 import { NEBULAE, boxOf } from '@/data/nebulae';
 import type { Word, UserStats, Screen } from '@/types';
 
 interface AppContextValue {
+  user: User | null;
+  authReady: boolean;
   words: Word[];
   stats: UserStats;
   level: number;
@@ -25,60 +31,83 @@ interface AppContextValue {
   onNext: () => void;
   onExitSession: () => void;
   onPick: (n: number) => void;
+  logout: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [words, setWords] = useState<Word[]>(SAMPLE_WORDS);
-  const [screen, setScreen] = useState<Screen>('login');
-  const [pickedBox, setPickedBox] = useState(2);
+  const [user, setUser]               = useState<User | null>(null);
+  const [authReady, setAuthReady]     = useState(false);
+  const [words, setWords]             = useState<Word[]>(SAMPLE_WORDS);
+  const [screen, setScreen]           = useState<Screen>('login');
+  const [pickedBox, setPickedBox]     = useState(2);
   const [sessionSource, setSessionSource] = useState<'home' | 'box'>('home');
   const [selectedMap, setSelectedMap] = useState(0);
   const [currentStreak, setCurrentStreak] = useState(0);
-  const [maxStreak, setMaxStreak] = useState(0);
+  const [maxStreak, setMaxStreak]     = useState(0);
+
+  // Subscribe to Firebase auth state — keeps session across page reloads
+  useEffect(() => {
+    let unsub: (() => void) | undefined;
+    (async () => {
+      const { auth, firebaseReady } = await import('@/lib/firebase');
+      if (!firebaseReady || !auth) {
+        setAuthReady(true); // no Firebase — skip to guest mode
+        return;
+      }
+      const { onAuthStateChanged } = await import('firebase/auth');
+      unsub = onAuthStateChanged(auth, (firebaseUser) => {
+        setUser(firebaseUser);
+        setAuthReady(true);
+        // Auto-advance past login when already authenticated
+        if (firebaseUser) {
+          setScreen(s => s === 'login' ? 'maps' : s);
+        }
+      });
+    })();
+    return () => unsub?.();
+  }, []);
+
+  const logout = useCallback(async () => {
+    const { auth, firebaseReady } = await import('@/lib/firebase');
+    if (firebaseReady && auth) {
+      const { signOut } = await import('firebase/auth');
+      await signOut(auth);
+    }
+    setUser(null);
+    setScreen('login');
+  }, []);
 
   const stats = useMemo<UserStats>(() => {
     const totalAttempts = words.reduce((s, w) => s + w.attempts, 0);
-    const totalCorrect = words.reduce((s, w) => s + w.correct_answers, 0);
-    return {
-      totalAttempts,
-      totalCorrect,
-      maxStreak,
-      currentStreak,
-      wordsCount: words.length,
-    };
+    const totalCorrect  = words.reduce((s, w) => s + w.correct_answers, 0);
+    return { totalAttempts, totalCorrect, maxStreak, currentStreak, wordsCount: words.length };
   }, [words, maxStreak, currentStreak]);
 
-  // XP = total correct answers; level from XP
-  const xp = stats.totalCorrect;
+  const xp    = stats.totalCorrect;
   const level = useMemo(() => Math.max(1, Math.floor(Math.sqrt(xp / 10)) + 1), [xp]);
 
   const recordAnswer = useCallback((wordId: string, correct: boolean) => {
     setWords(prev => prev.map(w => {
       if (w.id !== wordId) return w;
-      const attempts = w.attempts + 1;
+      const attempts        = w.attempts + 1;
       const correct_answers = w.correct_answers + (correct ? 1 : 0);
-      const accuracy = attempts > 0 ? Math.round((correct_answers / attempts) * 100) : 0;
+      const accuracy        = Math.round((correct_answers / attempts) * 100);
       return { ...w, attempts, correct_answers, accuracy };
     }));
     if (correct) {
-      setCurrentStreak(s => {
-        const next = s + 1;
-        setMaxStreak(m => Math.max(m, next));
-        return next;
-      });
+      setCurrentStreak(s => { const n = s + 1; setMaxStreak(m => Math.max(m, n)); return n; });
     } else {
       setCurrentStreak(0);
     }
   }, []);
 
   const addWords = useCallback((newWords: Omit<Word, 'id'>[]) => {
-    const withIds = newWords.map((w, i) => ({
-      ...w,
-      id: `${Date.now()}-${i}`,
-    }));
-    setWords(prev => [...prev, ...withIds]);
+    setWords(prev => [
+      ...prev,
+      ...newWords.map((w, i) => ({ ...w, id: `${Date.now()}-${i}` })),
+    ]);
   }, []);
 
   const deleteWords = useCallback((ids: string[]) => {
@@ -86,9 +115,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const go = useCallback((s: Screen) => {
-    if (s !== 'boxquiz' && s !== 'result_ok' && s !== 'result_ng') {
-      setSessionSource('home');
-    }
+    if (s !== 'boxquiz' && s !== 'result_ok' && s !== 'result_ng') setSessionSource('home');
     setScreen(s);
   }, []);
 
@@ -97,8 +124,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const onNext = useCallback(() => {
-    if (sessionSource === 'box') setScreen('boxquiz');
-    else setScreen('home');
+    setScreen(sessionSource === 'box' ? 'boxquiz' : 'home');
   }, [sessionSource]);
 
   const onExitSession = useCallback(() => {
@@ -114,11 +140,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   return (
     <AppContext.Provider value={{
+      user, authReady,
       words, stats, level, xp, screen,
       pickedBox, sessionSource, selectedMap,
       setScreen, setPickedBox, setSessionSource, setSelectedMap,
       recordAnswer, addWords, deleteWords,
-      go, onAnswer, onNext, onExitSession, onPick,
+      go, onAnswer, onNext, onExitSession, onPick, logout,
     }}>
       {children}
     </AppContext.Provider>

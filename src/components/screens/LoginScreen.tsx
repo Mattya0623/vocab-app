@@ -1,4 +1,5 @@
 'use client';
+import { useState } from 'react';
 import { Constellation, NxCard, NxBtn, NxIcon } from '@/components/ui';
 import { useT } from '@/contexts/I18nContext';
 import type { Screen } from '@/types';
@@ -10,6 +11,67 @@ interface LoginScreenProps {
 
 export function LoginScreen({ onNav, desktop }: LoginScreenProps) {
   const t = useT();
+  const [loading, setLoading] = useState<'google' | 'guest' | null>(null);
+  const [error, setError]     = useState<string | null>(null);
+
+  const handleGoogle = async () => {
+    setLoading('google');
+    setError(null);
+    try {
+      const { auth, googleProvider, firebaseReady } = await import('@/lib/firebase');
+      if (!firebaseReady || !auth) {
+        setError('Firebase が設定されていません。環境変数を確認してください。');
+        setLoading(null);
+        return;
+      }
+      const { signInWithPopup } = await import('firebase/auth');
+      await signInWithPopup(auth, googleProvider);
+      // onAuthStateChanged in AppContext handles navigation automatically
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'ログインに失敗しました';
+      // User closed the popup — not an error worth showing
+      if (!msg.includes('popup-closed') && !msg.includes('cancelled')) {
+        setError('Googleログインに失敗しました。もう一度お試しください。');
+      }
+      setLoading(null);
+    }
+  };
+
+  const handleGuest = async () => {
+    setLoading('guest');
+    try {
+      const { auth, firebaseReady } = await import('@/lib/firebase');
+      if (firebaseReady && auth) {
+        const { signInAnonymously } = await import('firebase/auth');
+        await signInAnonymously(auth);
+        // onAuthStateChanged handles navigation
+      } else {
+        onNav('maps'); // Firebase not configured — proceed directly
+      }
+    } catch {
+      onNav('maps'); // Always allow guest access
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  const buttons = (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%', maxWidth: 320 }}>
+      <NxBtn primary lg block onClick={handleGoogle} disabled={!!loading}>
+        {loading === 'google'
+          ? <><NxIcon kind="sparkle" size={18} /> ログイン中…</>
+          : <><NxIcon kind="google"  size={18} /> {t('LOGIN_GOOGLE')}</>}
+      </NxBtn>
+      <NxBtn ghost block onClick={handleGuest} disabled={!!loading}>
+        {loading === 'guest' ? '起動中…' : t('LOGIN_GUEST')}
+      </NxBtn>
+      {error && (
+        <div style={{ color: 'var(--red)', fontSize: 12, textAlign: 'center', lineHeight: 1.4 }}>
+          {error}
+        </div>
+      )}
+    </div>
+  );
 
   if (desktop) {
     return (
@@ -24,12 +86,7 @@ export function LoginScreen({ onNav, desktop }: LoginScreenProps) {
           <div style={{ marginTop: 22, fontSize: 16, lineHeight: 1.5 }}>
             {t('TAGLINE_1')}<br /><span style={{ color: 'var(--mag)' }}>{t('TAGLINE_2')}</span>
           </div>
-          <div style={{ marginTop: 26, display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <NxBtn primary lg block onClick={() => onNav('maps')}>
-              <NxIcon kind="google" size={18} /> {t('LOGIN_GOOGLE')}
-            </NxBtn>
-            <NxBtn ghost block onClick={() => onNav('maps')}>{t('LOGIN_GUEST')}</NxBtn>
-          </div>
+          <div style={{ marginTop: 26, display: 'flex', justifyContent: 'center' }}>{buttons}</div>
           <div className="nx-overline" style={{ marginTop: 18, fontSize: 9 }}>{t('LOGIN_FINE')}</div>
         </NxCard>
       </div>
@@ -40,11 +97,9 @@ export function LoginScreen({ onNav, desktop }: LoginScreenProps) {
     <div style={{ position: 'relative', height: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: 28, gap: 18 }}>
       <Constellation density={1.1} mode="tall" />
       <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 22 }}>
-        <div style={{ position: 'relative' }}>
-          <div style={{ width: 100, height: 100, borderRadius: '50%', background: 'radial-gradient(circle, rgba(92,232,255,0.4) 0%, rgba(92,232,255,0) 70%)', display: 'grid', placeItems: 'center', position: 'relative' }}>
-            <NxIcon kind="sparkle" size={56} color="var(--cyan)" glow />
-            <div className="nx-pulse" />
-          </div>
+        <div style={{ width: 100, height: 100, borderRadius: '50%', background: 'radial-gradient(circle, rgba(92,232,255,0.4) 0%, rgba(92,232,255,0) 70%)', display: 'grid', placeItems: 'center', position: 'relative' }}>
+          <NxIcon kind="sparkle" size={56} color="var(--cyan)" glow />
+          <div className="nx-pulse" />
         </div>
         <div>
           <div className="nx-h glow" style={{ fontSize: 56, letterSpacing: '0.18em', color: 'var(--cyan)', lineHeight: 1 }}>VOCAB</div>
@@ -55,12 +110,7 @@ export function LoginScreen({ onNav, desktop }: LoginScreenProps) {
             {t('TAGLINE_1')}<br /><span style={{ color: 'var(--mag)' }}>{t('TAGLINE_2')}</span>
           </div>
         </NxCard>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%', maxWidth: 320 }}>
-          <NxBtn primary lg block onClick={() => onNav('maps')}>
-            <NxIcon kind="google" size={18} /> {t('LOGIN_GOOGLE')}
-          </NxBtn>
-          <NxBtn ghost block onClick={() => onNav('maps')}>{t('LOGIN_GUEST')}</NxBtn>
-        </div>
+        {buttons}
         <div className="nx-overline" style={{ fontSize: 9, color: 'var(--ink-mute)' }}>{t('LOGIN_FINE')}</div>
       </div>
     </div>

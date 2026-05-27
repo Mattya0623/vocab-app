@@ -28,7 +28,7 @@ function useIsDesktop() {
 }
 
 export default function Home() {
-  const { screen, words, go, onAnswer, onNext, onExitSession, onPick, pickedBox } = useApp();
+  const { screen, words, go, onAnswer, onNext, onExitSession, onPick, pickedBox, authReady } = useApp();
   const { reverse } = useI18n();
   const desktop = useIsDesktop();
 
@@ -70,6 +70,18 @@ export default function Home() {
         return <PlayScreen onNav={nav} onAnswer={onAnswer} reverse={reverse} desktop={desktop} />;
     }
   };
+
+  // Show a minimal splash while Firebase resolves the auth state
+  if (!authReady) {
+    return (
+      <div style={{ height: '100dvh', background: 'var(--bg-0)', display: 'grid', placeItems: 'center' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div className="nx-h glow" style={{ fontSize: 42, letterSpacing: '0.18em', color: 'var(--cyan)' }}>VOCAB</div>
+          <div className="nx-overline" style={{ marginTop: 8 }}>// LOADING…</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ height: '100dvh', overflow: 'hidden', background: 'var(--bg-0)', color: 'var(--ink)' }}>
