@@ -5,7 +5,7 @@ import {
 } from 'react';
 import type { User } from 'firebase/auth';
 import type { Firestore } from 'firebase/firestore';
-import type { Word, UserStats, Screen } from '@/types';
+import type { Word, UserStats, Screen, LastResult } from '@/types';
 
 interface AppContextValue {
   user: User | null;
@@ -20,10 +20,12 @@ interface AppContextValue {
   sessionSource: 'home' | 'box';
   selectedMap: number;
   sessionLog: Array<{ word: string; correct: boolean }>;
+  lastResult: LastResult | null;
   setScreen: (s: Screen) => void;
   setPickedBox: (n: number) => void;
   setSessionSource: (s: 'home' | 'box') => void;
   setSelectedMap: (i: number) => void;
+  setLastResult: (r: LastResult) => void;
   recordAnswer: (wordId: string, correct: boolean) => void;
   addWords: (newWords: Omit<Word, 'id'>[]) => void;
   deleteWords: (ids: string[]) => void;
@@ -50,6 +52,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [currentStreak, setCurrentStreak] = useState(0);
   const [maxStreak, setMaxStreak]         = useState(0);
   const [sessionLog, setSessionLog]       = useState<Array<{ word: string; correct: boolean }>>([]);
+  const [lastResult, setLastResult]       = useState<LastResult | null>(null);
 
   // Refs let callbacks access current state without stale closures
   const userRef        = useRef<User | null>(null);
@@ -241,8 +244,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     <AppContext.Provider value={{
       user, username, authReady,
       words, stats, level, xp, screen,
-      pickedBox, sessionSource, selectedMap, sessionLog,
-      setScreen, setPickedBox, setSessionSource, setSelectedMap,
+      pickedBox, sessionSource, selectedMap, sessionLog, lastResult,
+      setScreen, setPickedBox, setSessionSource, setSelectedMap, setLastResult,
       recordAnswer, addWords, deleteWords,
       go, onAnswer, onNext, onExitSession, onPick,
       logout, saveUsername,

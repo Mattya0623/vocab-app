@@ -37,7 +37,7 @@ function buildQuiz(words: Word[], reverse: boolean) {
 
 export function PlayScreen({ onNav, onAnswer, reverse, desktop }: PlayScreenProps) {
   const t = useT();
-  const { level, xp, stats, words, recordAnswer, sessionLog } = useApp();
+  const { level, xp, stats, words, recordAnswer, sessionLog, setLastResult } = useApp();
   const maxXp = 10 * level ** 2;
   const minXp = 10 * (level - 1) ** 2;
   const xpPct  = maxXp > minXp ? Math.round(((xp - minXp) / (maxXp - minXp)) * 100) : 0;
@@ -53,6 +53,20 @@ export function PlayScreen({ onNav, onAnswer, reverse, desktop }: PlayScreenProp
 
   const handleAnswer = (idx: number) => {
     const ok = idx === correctIdx;
+    const chosen = slots[idx] || '';
+    const newAttempts = current.attempts + 1;
+    const newCorrect  = current.correct_answers + (ok ? 1 : 0);
+    const newAccuracy = Math.round((newCorrect / newAttempts) * 100);
+    setLastResult({
+      word: current.word,
+      meaning: current.meaning,
+      accuracy: newAccuracy,
+      attempts: newAttempts,
+      correct: ok,
+      chosenAnswer: chosen,
+      nebula: NEBULAE[boxOf(current.accuracy) - 1],
+      prevStreak: stats.currentStreak,
+    });
     recordAnswer(current.id, ok);
     onAnswer(ok);
   };

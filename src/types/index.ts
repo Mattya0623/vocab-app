@@ -46,3 +46,14 @@ export type Screen =
   | 'list' | 'import' | 'stats' | 'settings';
 
 export type SortKey = 'default' | 'acc_asc' | 'acc_desc' | 'att_desc' | 'az';
+
+export interface LastResult {
+  word: string;
+  meaning: string;
+  accuracy: number;
+  attempts: number;
+  correct: boolean;
+  chosenAnswer: string;
+  nebula: { name: string; n: number; color: string };
+  prevStreak: number;
+}

@@ -76,7 +76,7 @@ export function ProfileScreen({ onNav, desktop }: ProfileScreenProps) {
   const nebulaChart = (
     <NxCard style={{ padding: 14, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden', flex: desktop ? undefined : 1 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
-        <span className="nx-h glow" style={{ fontSize: 12, color: 'var(--cyan)', whiteSpace: 'nowrap' }}>{t('NEBULAE_BREAKDOWN')}</span>
+        <span className="nx-h glow" style={{ fontSize: 12, color: 'var(--cyan)', whiteSpace: 'nowrap' }}>進捗</span>
         <span className="nx-overline" style={{ whiteSpace: 'nowrap', fontSize: 9 }}>{t('FOCUS_ZONE')}</span>
       </div>
       <div style={{ flex: 1, display: 'flex', alignItems: 'flex-end', gap: 6, paddingTop: 12, minHeight: 80 }}>
@@ -91,6 +91,22 @@ export function ProfileScreen({ onNav, desktop }: ProfileScreenProps) {
                 {b.name.toUpperCase().slice(0, 3)}
               </div>
               <div className="nx-overline" style={{ fontSize: 8, whiteSpace: 'nowrap' }}>N{b.n} · {b.range}</div>
+            </div>
+          );
+        })}
+      </div>
+      <div style={{ marginTop: 12, borderTop: '1px solid rgba(118,138,220,0.15)', paddingTop: 10, display: 'flex', flexDirection: 'column', gap: 4 }}>
+        {NEBULAE.map((b, i) => {
+          const wCount = nebulaWordCounts[i];
+          const attempts = words.filter(w => boxOf(w.accuracy) === b.n).reduce((s, w) => s + w.attempts, 0);
+          return (
+            <div key={b.n} style={{ display: 'grid', gridTemplateColumns: '60px 1fr 40px 40px', gap: 6, alignItems: 'center', fontSize: 11 }}>
+              <span className="nx-overline" style={{ color: b.color, fontSize: 9 }}>N{b.n} · {b.range}</span>
+              <div style={{ height: 4, borderRadius: 2, background: 'rgba(118,138,220,0.12)', overflow: 'hidden' }}>
+                <div style={{ height: '100%', width: `${Math.min(100, wCount > 0 ? Math.max(4, Math.round((wCount / Math.max(...nebulaWordCounts, 1)) * 100)) : 0)}%`, background: b.color, boxShadow: wCount > 0 ? `0 0 6px ${b.color}` : 'none', borderRadius: 2, transition: 'width 0.4s' }} />
+              </div>
+              <span className="nx-mono" style={{ textAlign: 'right', fontSize: 10, color: 'var(--ink-soft)' }}>{wCount}語</span>
+              <span className="nx-mono" style={{ textAlign: 'right', fontSize: 10, color: b.color }}>{attempts}回</span>
             </div>
           );
         })}

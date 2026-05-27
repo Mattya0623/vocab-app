@@ -2,6 +2,7 @@
 import { NxCard, NxBtn, NxTag, NxProgress, NxIcon } from '@/components/ui';
 import { NxMobileHeader } from '@/components/layout/NxMobileHeader';
 import { useT } from '@/contexts/I18nContext';
+import { useApp } from '@/contexts/AppContext';
 import type { Screen } from '@/types';
 
 interface ResultScreenProps {
@@ -9,17 +10,28 @@ interface ResultScreenProps {
   onNav: (s: Screen) => void;
   onNext: () => void;
   onExit?: () => void;
-  sessionLabel?: string | null;
 }
 
-export function ResultScreen({ ok, onNav, onNext, onExit, sessionLabel }: ResultScreenProps) {
+export function ResultScreen({ ok, onNav, onNext, onExit }: ResultScreenProps) {
   const t = useT();
+  const { lastResult, stats } = useApp();
+
+  const streak = ok ? (lastResult?.prevStreak ?? 0) + 1 : 0;
+  const prevStreak = lastResult?.prevStreak ?? 0;
+  const nextMilestone = Math.ceil((streak + 1) / 10) * 10;
+  const streakPct = nextMilestone > 0 ? Math.round(((streak % 10) / 10) * 100) : 0;
+
+  const subLabel = ok
+    ? `+1 XP · STREAK ${streak}`
+    : prevStreak > 0
+      ? `STREAK RESET · ${prevStreak} → 0`
+      : t('STREAK_RESET');
 
   return (
     <div style={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column' }}>
       <NxMobileHeader
         title={ok ? t('RESULT_OK_TITLE') : t('RESULT_NG_TITLE')}
-        sub={sessionLabel || (ok ? '+1 XP · STREAK 5' : t('STREAK_RESET'))}
+        sub={subLabel}
         glowColor={ok ? 'cyan' : 'mag'}
         left={onExit && <div onClick={onExit} style={{ cursor: 'pointer' }}><NxIcon kind="back" size={18} color="var(--ink-soft)" /></div>}
         right={onExit && <NxBtn ghost style={{ padding: '3px 8px', fontSize: 10 }} onClick={onExit}>{t('EXIT_SESSION')}</NxBtn>}
@@ -49,45 +61,45 @@ export function ResultScreen({ ok, onNav, onNext, onExit, sessionLabel }: Result
           <div className="nx-overline" style={{ marginTop: 4 }}>{ok ? t('SIGNAL_LOCKED') : t('SIGNAL_LOST')}</div>
         </div>
 
-        {ok ? (
+        {lastResult && (ok ? (
           <>
             <NxCard bracket="amber" style={{ padding: 14 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                <div className="nx-h glow" style={{ fontSize: 26 }}>apple</div>
-                <NxTag amber>POLARIS · N6</NxTag>
+                <div className="nx-h glow" style={{ fontSize: 26 }}>{lastResult.word}</div>
+                <NxTag amber>{lastResult.nebula.name.toUpperCase()} · N{lastResult.nebula.n}</NxTag>
               </div>
-              <div style={{ marginTop: 6, fontSize: 16 }}>= りんご</div>
+              <div style={{ marginTop: 6, fontSize: 16 }}>= {lastResult.meaning}</div>
               <div className="nx-divider" style={{ margin: '10px 0' }} />
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                <NxTag green>ACC 92% ▲</NxTag>
-                <NxTag>ATT 13</NxTag>
+                <NxTag green>ACC {lastResult.accuracy}% ▲</NxTag>
+                <NxTag>ATT {lastResult.attempts}</NxTag>
                 <NxTag cyan>+1 XP</NxTag>
               </div>
             </NxCard>
             <div style={{ textAlign: 'center', color: 'var(--amber)' }}>
-              <span className="nx-mono" style={{ fontSize: 14, letterSpacing: '0.08em' }}>▲ 5 {t('STREAK')} · {t('NEXT_MILESTONE')}</span>
-              <NxProgress value={50} amber style={{ marginTop: 8 }} />
+              <span className="nx-mono" style={{ fontSize: 14, letterSpacing: '0.08em' }}>▲ {streak} {t('STREAK')} · NEXT MILESTONE {nextMilestone}</span>
+              <NxProgress value={streakPct} amber style={{ marginTop: 8 }} />
             </div>
           </>
         ) : (
           <NxCard glow="red" style={{ padding: 14 }}>
-            <div className="nx-h" style={{ fontSize: 24 }}>meticulous</div>
-            <div className="nx-mono" style={{ marginTop: 4 }}>{t('YOUR_ANSWER')} · 不明瞭にする</div>
+            <div className="nx-h" style={{ fontSize: 24 }}>{lastResult.word}</div>
+            <div className="nx-mono" style={{ marginTop: 4 }}>{t('YOUR_ANSWER')} · {lastResult.chosenAnswer}</div>
             <div className="nx-divider" style={{ margin: '10px 0' }} />
             <div className="nx-overline">{t('CORRECT_MEANING')}</div>
             <div style={{ fontSize: 22, marginTop: 4, color: 'var(--cyan)', textShadow: '0 0 12px rgba(92,232,255,0.5)' }}>
-              几帳面な
+              {lastResult.meaning}
             </div>
             <div style={{ display: 'flex', gap: 6, marginTop: 10, flexWrap: 'wrap' }}>
-              <NxTag red>ACC 33% ▼</NxTag>
-              <NxTag>ATT 9</NxTag>
-              <NxTag mag>ALTAIR · N2</NxTag>
+              <NxTag red>ACC {lastResult.accuracy}% ▼</NxTag>
+              <NxTag>ATT {lastResult.attempts}</NxTag>
+              <NxTag mag>{lastResult.nebula.name.toUpperCase()} · N{lastResult.nebula.n}</NxTag>
             </div>
           </NxCard>
-        )}
+        ))}
       </div>
       <div style={{ padding: 14, borderTop: '1px solid var(--line)', background: 'rgba(4,5,26,0.6)', display: 'flex', gap: 10 }}>
-        {!ok && <NxBtn block ghost>{t('RETRY')}</NxBtn>}
+        {!ok && <NxBtn block ghost onClick={onNext}>{t('RETRY')}</NxBtn>}
         <NxBtn primary lg block onClick={onNext}>{t('NEXT')} → <NxIcon kind="arrow" size={16} /></NxBtn>
       </div>
     </div>
