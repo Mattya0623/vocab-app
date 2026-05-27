@@ -8,6 +8,7 @@ import type { Screen } from '@/types';
 
 const NAV_ITEMS: { id: Screen; labelKey: string; subKey: string; icon: Parameters<typeof NxIcon>[0]['kind'] }[] = [
   { id: 'maps',     labelKey: 'MAPS',     subKey: 'MAPS_SUB',     icon: 'orbit' },
+  { id: 'timer',    labelKey: 'TIMER',    subKey: 'TIMER_SUB',    icon: 'clock' },
   { id: 'home',     labelKey: 'PLAY',     subKey: 'PLAY_SUB',     icon: 'sparkle' },
   { id: 'boxes',    labelKey: 'NEBULAE',  subKey: 'NEBULAE_SUB',  icon: 'star' },
   { id: 'list',     labelKey: 'CODEX',    subKey: 'CODEX_SUB',    icon: 'list' },

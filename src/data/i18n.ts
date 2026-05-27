@@ -11,6 +11,15 @@ export const TR: TranslationMap = {
   SETTINGS:    { en: 'SETTINGS', ja: 'SETTINGS', zh: '设置',     ko: '설정' },
   MAPS:        { en: 'COSMOS',   ja: 'COSMOS',   zh: '星图',     ko: '코스모스' },
 
+  TIMER:       { en: 'TIMER',    ja: 'TIMER',    zh: '计时',     ko: '타이머' },
+  TIMER_SUB:   { en: 'Focus countdown',  ja: 'カウントダウン', zh: '专注倒计时', ko: '집중 타이머' },
+  TIMER_HEAD:  { en: 'TIMER · Focus countdown', ja: 'TIMER · 集中タイマー', zh: 'TIMER · 专注倒计时', ko: 'TIMER · 집중 타이머' },
+  TIMER_START: { en: 'START',  ja: 'START',  zh: '开始', ko: '시작' },
+  TIMER_PAUSE: { en: 'PAUSE',  ja: 'PAUSE',  zh: '暂停', ko: '일시정지' },
+  TIMER_RESET: { en: 'RESET',  ja: 'RESET',  zh: '重置', ko: '초기화' },
+  TIMER_DONE:  { en: 'TIME UP', ja: '時間終了', zh: '时间到', ko: '시간 종료' },
+  TIMER_SET:   { en: 'SET TIMER', ja: 'タイマー設定', zh: '设置时间', ko: '타이머 설정' },
+
   MAPS_SUB:    { en: 'Cosmic atlas',     ja: '宇宙地図',     zh: '宇宙图谱',     ko: '우주 지도' },
   MAPS_HEAD:   { en: 'COSMOS · 宇宙地図', ja: 'COSMOS · 宇宙地図', zh: 'COSMOS · 宇宙图谱', ko: 'COSMOS · 우주 지도' },
   GALAXY_TOUR: { en: 'GALAXY TOUR',      ja: 'GALAXY TOUR', zh: '星系导览',     ko: '갤럭시 투어' },

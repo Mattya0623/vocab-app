@@ -14,6 +14,7 @@ import { ImportScreen } from '@/components/screens/ImportScreen';
 import { ProfileScreen } from '@/components/screens/ProfileScreen';
 import { SettingsScreen } from '@/components/screens/SettingsScreen';
 import { CosmosMapScreen } from '@/components/screens/CosmosMapScreen';
+import { TimerScreen } from '@/components/screens/TimerScreen';
 import type { Screen } from '@/types';
 
 function useIsDesktop() {
@@ -48,6 +49,8 @@ export default function Home() {
     switch (screen) {
       case 'maps':
         return <CosmosMapScreen onNav={nav} desktop={desktop} />;
+      case 'timer':
+        return <TimerScreen onNav={nav} desktop={desktop} />;
       case 'home':
         return <PlayScreen onNav={nav} onAnswer={onAnswer} reverse={reverse} desktop={desktop} />;
       case 'result_ok':

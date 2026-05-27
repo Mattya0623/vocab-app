@@ -3,7 +3,7 @@
 type IconKind =
   | 'home' | 'orbit' | 'list' | 'chart' | 'plus' | 'trash' | 'check' | 'x'
   | 'upload' | 'arrow' | 'back' | 'star' | 'flame' | 'book' | 'medal' | 'google'
-  | 'settings' | 'search' | 'dots' | 'sparkle' | 'bolt' | 'user';
+  | 'settings' | 'search' | 'dots' | 'sparkle' | 'bolt' | 'user' | 'clock';
 
 interface NxIconProps {
   kind?: IconKind;
@@ -44,6 +44,7 @@ export function NxIcon({ kind = 'sparkle', size = 18, color = 'currentColor', gl
     sparkle:<><path d="M12 3 V9 M12 15 V21 M3 12 H9 M15 12 H21 M5.5 5.5 L9 9 M15 15 L18.5 18.5 M5.5 18.5 L9 15 M15 9 L18.5 5.5" {...common}/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></>,
     bolt:  <path d="M13 3 L5 14 H11 L9 21 L19 9 H13 Z" {...common}/>,
     user:  <><circle cx="12" cy="8" r="4" {...common}/><path d="M4 20 C4 16 8 14 12 14 C16 14 20 16 20 20" {...common}/></>,
+    clock: <><circle cx="12" cy="12" r="8" {...common}/><path d="M12 7 V12 L15.5 15.5" {...common}/></>,
   };
 
   return (
