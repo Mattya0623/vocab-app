@@ -244,8 +244,13 @@ html, body {
 
 /* ── Tab bar (mobile) ── */
 .nx-tabbar {
-  display: flex; background: rgba(4, 5, 26, 0.85);
-  border-top: 1px solid var(--line); backdrop-filter: blur(14px);
+  /* Fixed to viewport so browser chrome appearing/disappearing can't move it */
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
+  display: flex; background: rgba(4, 5, 26, 0.92);
+  border-top: 1px solid var(--line);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  /* iPhone home-bar safe area */
+  padding-bottom: env(safe-area-inset-bottom);
 }
 .nx-tabbar > * {
   flex: 1; text-align: center; padding: 10px 4px 12px; cursor: pointer;

@@ -19,15 +19,22 @@ interface NxTabBarProps {
 export function NxTabBar({ active = 'home', onNav = () => {} }: NxTabBarProps) {
   const t = useT();
   return (
-    <div className="nx-tabbar">
-      {TAB_ITEMS.map(it => (
-        <div key={it.id} className={active === it.id ? 'active' : ''} onClick={() => onNav(it.id)}>
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 4 }}>
-            <NxIcon kind={it.icon} size={18} glow={active === it.id} />
+    <>
+      {/*
+        Spacer reserves the exact height the fixed bar occupies,
+        so flex-1 content above never slides underneath it.
+      */}
+      <div aria-hidden style={{ flexShrink: 0, height: 'calc(56px + env(safe-area-inset-bottom))' }} />
+      <div className="nx-tabbar">
+        {TAB_ITEMS.map(it => (
+          <div key={it.id} className={active === it.id ? 'active' : ''} onClick={() => onNav(it.id)}>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 4 }}>
+              <NxIcon kind={it.icon} size={18} glow={active === it.id} />
+            </div>
+            <div>{t(it.labelKey)}</div>
           </div>
-          <div>{t(it.labelKey)}</div>
-        </div>
-      ))}
-    </div>
+        ))}
+      </div>
+    </>
   );
 }

@@ -9,6 +9,11 @@ interface LoginScreenProps {
   desktop?: boolean;
 }
 
+function isMobileBrowser() {
+  return typeof navigator !== 'undefined' &&
+    /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+}
+
 export function LoginScreen({ onNav, desktop }: LoginScreenProps) {
   const t = useT();
   const [loading, setLoading] = useState<'google' | 'guest' | null>(null);
@@ -20,18 +25,30 @@ export function LoginScreen({ onNav, desktop }: LoginScreenProps) {
     try {
       const { auth, googleProvider, firebaseReady } = await import('@/lib/firebase');
       if (!firebaseReady || !auth) {
-        setError('Firebase が設定されていません。環境変数を確認してください。');
+        setError('Firebase が設定されていません。Vercel の環境変数を確認してください。');
         setLoading(null);
         return;
       }
-      const { signInWithPopup } = await import('firebase/auth');
-      await signInWithPopup(auth, googleProvider);
-      // onAuthStateChanged in AppContext handles navigation automatically
+
+      if (isMobileBrowser()) {
+        // Mobile: redirect flow (popups are blocked on iOS/Android browsers)
+        const { signInWithRedirect } = await import('firebase/auth');
+        await signInWithRedirect(auth, googleProvider);
+        // Page navigates away — no code runs after this line
+      } else {
+        // Desktop: popup flow
+        const { signInWithPopup } = await import('firebase/auth');
+        await signInWithPopup(auth, googleProvider);
+        // onAuthStateChanged in AppContext handles navigation
+      }
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : 'ログインに失敗しました';
-      // User closed the popup — not an error worth showing
-      if (!msg.includes('popup-closed') && !msg.includes('cancelled')) {
-        setError('Googleログインに失敗しました。もう一度お試しください。');
+      const code = (e as { code?: string }).code ?? '';
+      const msg  = (e as { message?: string }).message ?? '';
+
+      if (code === 'auth/unauthorized-domain') {
+        setError('このドメインがFirebaseに未登録です。Firebase Console → Authentication → 承認済みドメイン にVercelのURLを追加してください。');
+      } else if (!code.includes('popup-closed') && !msg.includes('cancelled')) {
+        setError('Googleログインに失敗しました。しばらくしてからお試しください。');
       }
       setLoading(null);
     }
@@ -44,12 +61,11 @@ export function LoginScreen({ onNav, desktop }: LoginScreenProps) {
       if (firebaseReady && auth) {
         const { signInAnonymously } = await import('firebase/auth');
         await signInAnonymously(auth);
-        // onAuthStateChanged handles navigation
       } else {
-        onNav('maps'); // Firebase not configured — proceed directly
+        onNav('maps');
       }
     } catch {
-      onNav('maps'); // Always allow guest access
+      onNav('maps');
     } finally {
       setLoading(null);
     }
@@ -66,7 +82,7 @@ export function LoginScreen({ onNav, desktop }: LoginScreenProps) {
         {loading === 'guest' ? '起動中…' : t('LOGIN_GUEST')}
       </NxBtn>
       {error && (
-        <div style={{ color: 'var(--red)', fontSize: 12, textAlign: 'center', lineHeight: 1.4 }}>
+        <div style={{ color: 'var(--red)', fontSize: 11, textAlign: 'center', lineHeight: 1.5 }}>
           {error}
         </div>
       )}

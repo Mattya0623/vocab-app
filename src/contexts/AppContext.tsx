@@ -56,7 +56,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setAuthReady(true); // no Firebase — skip to guest mode
         return;
       }
-      const { onAuthStateChanged } = await import('firebase/auth');
+      const { onAuthStateChanged, getRedirectResult } = await import('firebase/auth');
+
+      // Resolve any pending mobile redirect login
+      getRedirectResult(auth).catch(() => {/* ignore stale redirect errors */});
+
       unsub = onAuthStateChanged(auth, (firebaseUser) => {
         setUser(firebaseUser);
         setAuthReady(true);
