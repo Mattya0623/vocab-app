@@ -175,54 +175,51 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setCurrentStreak(0);
     }
 
+    const word = wordsRef.current.find(w => w.id === wordId);
+    if (!word) return;
+
+    const attempts        = word.attempts + 1;
+    const correct_answers = word.correct_answers + (correct ? 1 : 0);
+    const accuracy        = Math.round((correct_answers / attempts) * 100);
+    const updated         = { ...word, attempts, correct_answers, accuracy };
+
+    // Always update local state immediately for instant UI feedback
+    setWords(prev => prev.map(w => w.id === wordId ? updated : w));
+
     const u  = userRef.current;
     const db = dbRef.current;
-
     if (u && !u.isAnonymous && db) {
-      const word = wordsRef.current.find(w => w.id === wordId);
-      if (!word) return;
-      const attempts        = word.attempts + 1;
-      const correct_answers = word.correct_answers + (correct ? 1 : 0);
-      const accuracy        = Math.round((correct_answers / attempts) * 100);
-      // Fire-and-forget — onSnapshot will update local state
       import('@/lib/firestore').then(({ upsertWord }) =>
-        upsertWord(db, u.uid, { ...word, attempts, correct_answers, accuracy }).catch(console.error)
+        upsertWord(db, u.uid, updated).catch(console.error)
       );
-    } else {
-      setWords(prev => prev.map(w => {
-        if (w.id !== wordId) return w;
-        const attempts        = w.attempts + 1;
-        const correct_answers = w.correct_answers + (correct ? 1 : 0);
-        const accuracy        = Math.round((correct_answers / attempts) * 100);
-        return { ...w, attempts, correct_answers, accuracy };
-      }));
     }
   }, []);
 
   const addWords = useCallback((newWords: Omit<Word, 'id'>[]) => {
     const withIds = newWords.map((w, i) => ({ ...w, id: `${Date.now()}-${i}` }));
+
+    // Always update local state immediately
+    setWords(prev => [...prev, ...withIds]);
+
     const u  = userRef.current;
     const db = dbRef.current;
-
     if (u && !u.isAnonymous && db) {
       import('@/lib/firestore').then(({ upsertWord }) =>
-        withIds.forEach(w => upsertWord(db, u.uid, w).catch(console.error))
+        Promise.all(withIds.map(w => upsertWord(db, u.uid, w))).catch(console.error)
       );
-    } else {
-      setWords(prev => [...prev, ...withIds]);
     }
   }, []);
 
   const deleteWords = useCallback((ids: string[]) => {
+    // Always update local state immediately
+    setWords(prev => prev.filter(w => !ids.includes(w.id)));
+
     const u  = userRef.current;
     const db = dbRef.current;
-
     if (u && !u.isAnonymous && db) {
       import('@/lib/firestore').then(({ removeWords }) =>
         removeWords(db, u.uid, ids).catch(console.error)
       );
-    } else {
-      setWords(prev => prev.filter(w => !ids.includes(w.id)));
     }
   }, []);
 

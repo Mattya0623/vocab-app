@@ -80,6 +80,18 @@ export function CodexScreen({ onNav, desktop }: CodexScreenProps) {
             <span />
           </div>
           <div style={{ flex: 1, overflow: 'auto' }}>
+            {sorted.length === 0 && (
+              <div style={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: 16, textAlign: 'center' }}>
+                <NxIcon kind="list" size={40} color="var(--ink-mute)" />
+                <div>
+                  <div className="nx-h" style={{ fontSize: 16, color: 'var(--ink-soft)' }}>単語がありません</div>
+                  <div className="nx-overline" style={{ marginTop: 4 }}>// CSVをインポートして銀河を起動してください</div>
+                </div>
+                <NxBtn primary onClick={() => onNav('import')}>
+                  <NxIcon kind="upload" size={14} /> インポート
+                </NxBtn>
+              </div>
+            )}
             {sorted.map((w) => {
               const b = NEBULAE[boxOf(w.accuracy) - 1];
               return (
@@ -125,6 +137,18 @@ export function CodexScreen({ onNav, desktop }: CodexScreenProps) {
         </div>
       </div>
       <div style={{ flex: 1, overflow: 'auto', borderTop: '1px solid var(--line)' }}>
+        {sorted.length === 0 && (
+          <div style={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: 14, padding: 32, textAlign: 'center' }}>
+            <NxIcon kind="list" size={36} color="var(--ink-mute)" />
+            <div>
+              <div className="nx-h" style={{ fontSize: 15, color: 'var(--ink-soft)' }}>単語がありません</div>
+              <div className="nx-overline" style={{ marginTop: 4 }}>// CSVをインポートして銀河を起動</div>
+            </div>
+            <NxBtn primary onClick={() => onNav('import')}>
+              <NxIcon kind="upload" size={14} /> インポート
+            </NxBtn>
+          </div>
+        )}
         {sorted.map((w) => {
           const checked = sel.has(w.id);
           const b = NEBULAE[boxOf(w.accuracy) - 1];

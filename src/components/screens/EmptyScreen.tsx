@@ -29,9 +29,8 @@ export function EmptyScreen({ onNav, onImport, desktop }: EmptyScreenProps) {
         <div style={{ marginTop: 8, fontSize: 14, lineHeight: 1.5, color: 'var(--ink-soft)' }}>
           まだ単語がありません。<br />CSV をペーストして、銀河を起動しましょう。
         </div>
-        <div style={{ marginTop: 22, display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-          <NxBtn primary lg onClick={onImport}><NxIcon kind="upload" size={16} /> インポート</NxBtn>
-          <NxBtn ghost>サンプルで起動</NxBtn>
+        <div style={{ marginTop: 22, display: 'flex', gap: 10, justifyContent: 'center' }}>
+          <NxBtn primary lg onClick={() => onImport?.()}><NxIcon kind="upload" size={16} /> インポート</NxBtn>
         </div>
       </NxCard>
     </div>
