@@ -25,10 +25,11 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-function buildQuiz(words: Word[], reverse: boolean) {
-  const current = words[Math.floor(Math.random() * words.length)];
+function buildBoxQuiz(boxWords: Word[], allWords: Word[], reverse: boolean) {
+  // Question is always from the selected box; distractors drawn from full pool
+  const current = boxWords[Math.floor(Math.random() * boxWords.length)];
   const correct  = reverse ? current.word    : current.meaning;
-  const pool     = shuffle(words.filter(w => w.id !== current.id))
+  const pool     = shuffle(allWords.filter(w => w.id !== current.id))
     .slice(0, 3)
     .map(w => reverse ? w.word : w.meaning);
   const options  = shuffle([correct, ...pool]);
@@ -41,9 +42,12 @@ export function BoxQuizScreen({ onNav, onAnswer, onExit, box, reverse }: BoxQuiz
   const b = NEBULAE[box - 1];
 
   const boxWords = words.filter(w => boxOf(w.accuracy) === box);
-  const allWords = boxWords.length >= 2 ? boxWords : words;
 
-  const [quiz] = useState(() => buildQuiz(allWords, reverse));
+  const [quiz] = useState(() => buildBoxQuiz(
+    boxWords.length > 0 ? boxWords : words,
+    words,
+    reverse,
+  ));
   const { current, options, correctIdx } = quiz;
 
   const slots = [...options, '', '', '', ''].slice(0, 4) as string[];

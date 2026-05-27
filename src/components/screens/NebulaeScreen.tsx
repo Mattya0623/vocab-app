@@ -20,11 +20,12 @@ const POSITIONS_DESKTOP = [
 interface NebulaeScreenProps {
   onNav: (s: Screen) => void;
   onPick: (n: number) => void;
+  onSelect: (n: number) => void;
   selected: number;
   desktop?: boolean;
 }
 
-export function NebulaeScreen({ onNav, onPick, selected, desktop }: NebulaeScreenProps) {
+export function NebulaeScreen({ onNav, onPick, onSelect, selected, desktop }: NebulaeScreenProps) {
   const t = useT();
   const { words } = useApp();
   const sel = NEBULAE[selected - 1];
@@ -64,7 +65,7 @@ export function NebulaeScreen({ onNav, onPick, selected, desktop }: NebulaeScree
         const on = b.n === selected;
         const count = wordCounts[i];
         return (
-          <div key={b.n} onClick={() => onPick(b.n)} className="nx-clickable"
+          <div key={b.n} onClick={() => onSelect(b.n)} className="nx-clickable"
             style={{ position: 'absolute', left: `calc(${p.x}% - ${r}px)`, top: `calc(${p.y}% - ${r}px)`, width: r * 2, height: r * 2, zIndex: 2 }}>
             <div style={{ position: 'absolute', inset: desktop ? -16 : -8, borderRadius: '50%', background: `radial-gradient(circle, ${b.color}55 0%, transparent 70%)`, filter: on && !desktop ? 'brightness(1.6)' : 'none' }} />
             <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: b.color, boxShadow: `0 0 ${on ? (desktop ? 32 : 24) : (desktop ? 14 : 10)}px ${b.color}` }} />
@@ -162,7 +163,7 @@ export function NebulaeScreen({ onNav, onPick, selected, desktop }: NebulaeScree
         </NxCard>
         <div style={{ overflow: 'hidden auto', display: 'flex', flexDirection: 'column', gap: 6 }}>
           {NEBULAE.filter(b => b.n !== selected).map((b) => (
-            <div key={b.n} className="nx-clickable" onClick={() => onPick(b.n)}
+            <div key={b.n} className="nx-clickable" onClick={() => onSelect(b.n)}
               style={{ display: 'grid', gridTemplateColumns: '24px 1fr auto auto', gap: 10, alignItems: 'center', padding: '6px 12px', background: 'rgba(18,22,58,0.5)', border: '1px solid var(--line)', borderRadius: 8 }}>
               <div style={{ width: 12, height: 12, borderRadius: '50%', background: b.color, boxShadow: `0 0 8px ${b.color}`, justifySelf: 'center' }} />
               <div className="nx-h" style={{ fontSize: 12, color: b.color }}>{b.name.toUpperCase()}</div>

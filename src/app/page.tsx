@@ -29,7 +29,7 @@ function useIsDesktop() {
 }
 
 export default function Home() {
-  const { screen, words, go, onAnswer, onNext, onExitSession, onPick, pickedBox, authReady } = useApp();
+  const { screen, words, go, onAnswer, onNext, onExitSession, onPick, pickedBox, authReady, setPickedBox } = useApp();
   const { reverse } = useI18n();
   const desktop = useIsDesktop();
 
@@ -55,7 +55,7 @@ export default function Home() {
       case 'result_ng':
         return <ResultScreen ok={false} onNav={nav} onNext={onNext} onExit={onExitSession} />;
       case 'boxes':
-        return <NebulaeScreen onNav={nav} onPick={onPick} selected={pickedBox} desktop={desktop} />;
+        return <NebulaeScreen onNav={nav} onPick={onPick} onSelect={setPickedBox} selected={pickedBox} desktop={desktop} />;
       case 'boxquiz':
         return <BoxQuizScreen onNav={nav} onAnswer={onAnswer} onExit={onExitSession} box={pickedBox} reverse={reverse} />;
       case 'list':
