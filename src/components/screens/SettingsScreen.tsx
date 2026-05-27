@@ -123,7 +123,7 @@ export function SettingsScreen({ onNav, desktop }: SettingsScreenProps) {
 
   if (desktop) {
     return (
-      <NxDesktopShell active="stats" onNav={onNav} title={t('SETTINGS')} sub={t('SETTINGS_HEAD')}>
+      <NxDesktopShell active="settings" onNav={onNav} title={t('SETTINGS')} sub={t('SETTINGS_HEAD')}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, alignContent: 'start' }}>
           {studySection}
           {langSection}
@@ -150,7 +150,7 @@ export function SettingsScreen({ onNav, desktop }: SettingsScreenProps) {
           VOCAB β · v0.2.0 · 2026-05
         </div>
       </div>
-      <NxTabBar active="stats" onNav={onNav} />
+      <NxTabBar active="settings" onNav={onNav} />
     </div>
   );
 }

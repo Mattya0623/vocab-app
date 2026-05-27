@@ -39,7 +39,9 @@ export default function Home() {
   const renderScreen = () => {
     if (screen === 'login') return <LoginScreen onNav={nav} desktop={desktop} />;
     if (screen === 'setup') return <SetupScreen />;
-    if (isEmpty && screen !== 'import' && screen !== 'settings') {
+    // Only block screens that genuinely need words to function
+    const requiresWords = ['home', 'boxes', 'boxquiz', 'result_ok', 'result_ng'].includes(screen);
+    if (isEmpty && requiresWords) {
       return <EmptyScreen onNav={nav} desktop={desktop} />;
     }
 

@@ -23,7 +23,7 @@ interface NxSideNavProps {
 
 export function NxSideNav({ active = 'home', onNav = () => {} }: NxSideNavProps) {
   const t = useT();
-  const { level, xp } = useApp();
+  const { level, xp, username, user } = useApp();
 
   return (
     <div className="nx-sidenav">
@@ -61,7 +61,7 @@ export function NxSideNav({ active = 'home', onNav = () => {} }: NxSideNavProps)
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 4px' }}>
         <LevelAvatar lv={level} size={36} />
         <div style={{ lineHeight: 1.2, minWidth: 0 }}>
-          <div style={{ fontSize: 13 }}>Yamada</div>
+          <div style={{ fontSize: 13 }}>{username || user?.displayName || 'ゲスト'}</div>
           <div className="nx-overline" style={{ whiteSpace: 'nowrap', color: levelColor(level) }}>
             {levelTierName(level)} · {xp} XP
           </div>
