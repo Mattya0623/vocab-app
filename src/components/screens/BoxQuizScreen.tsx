@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { NxCard, NxBtn, NxIcon } from '@/components/ui';
 import { NxMobileHeader } from '@/components/layout/NxMobileHeader';
 import { NxTabBar } from '@/components/layout/NxTabBar';
@@ -26,7 +26,6 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 function buildBoxQuiz(boxWords: Word[], allWords: Word[], reverse: boolean) {
-  // Question is always from the selected box; distractors drawn from full pool
   const current = boxWords[Math.floor(Math.random() * boxWords.length)];
   const correct  = reverse ? current.word    : current.meaning;
   const pool     = shuffle(allWords.filter(w => w.id !== current.id))
@@ -42,16 +41,25 @@ export function BoxQuizScreen({ onNav, onAnswer, onExit, box, reverse }: BoxQuiz
   const b = NEBULAE[box - 1];
 
   const boxWords = words.filter(w => boxOf(w.accuracy) === box);
+  const hasWords = boxWords.length > 0;
 
+  // Auto-redirect to Nebulae if this box has no words
+  useEffect(() => {
+    if (!hasWords) {
+      const timer = setTimeout(onExit, 2500);
+      return () => clearTimeout(timer);
+    }
+  }, [hasWords, onExit]);
+
+  // Safe init: use all words as fallback only to avoid crash; render guards below
   const [quiz] = useState(() => buildBoxQuiz(
-    boxWords.length > 0 ? boxWords : words,
+    hasWords ? boxWords : words,
     words,
     reverse,
   ));
   const { current, options, correctIdx } = quiz;
 
   const slots = [...options, '', '', '', ''].slice(0, 4) as string[];
-
   const sessionCount = sessionLog.length;
 
   const handleAnswer = (idx: number) => {
@@ -73,6 +81,44 @@ export function BoxQuizScreen({ onNav, onAnswer, onExit, box, reverse }: BoxQuiz
     recordAnswer(current.id, ok);
     onAnswer(ok);
   };
+
+  // Empty box — show message and auto-redirect
+  if (!hasWords) {
+    return (
+      <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+        <NxMobileHeader
+          title={`${b.name.toUpperCase()} · N${b.n}`}
+          sub={b.range}
+          glowColor="mag"
+          left={<div onClick={onExit} style={{ cursor: 'pointer' }}><NxIcon kind="back" size={18} color="var(--ink-soft)" /></div>}
+          right={<NxBtn ghost style={{ padding: '3px 8px', fontSize: 10 }} onClick={onExit}>{t('EXIT_SESSION')}</NxBtn>}
+        />
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 20, padding: 32, textAlign: 'center' }}>
+          <div style={{
+            width: 80, height: 80, borderRadius: '50%',
+            background: `radial-gradient(circle, ${b.color}33 0%, transparent 70%)`,
+            border: `1px solid ${b.color}44`,
+            display: 'grid', placeItems: 'center',
+          }}>
+            <div style={{ width: 16, height: 16, borderRadius: '50%', background: b.color, opacity: 0.4, boxShadow: `0 0 20px ${b.color}` }} />
+          </div>
+          <div>
+            <div className="nx-h" style={{ fontSize: 18, color: b.color, textShadow: `0 0 10px ${b.color}` }}>
+              {b.name.toUpperCase()} · N{b.n}
+            </div>
+            <div style={{ marginTop: 10, fontSize: 14, color: 'var(--ink-soft)', lineHeight: 1.6 }}>
+              この星には単語が残っていないようです
+            </div>
+            <div className="nx-overline" style={{ marginTop: 6 }}>// まもなく NEBULAE に戻ります</div>
+          </div>
+          <NxBtn ghost onClick={onExit} style={{ marginTop: 4 }}>
+            <NxIcon kind="back" size={14} /> NEBULAE に戻る
+          </NxBtn>
+        </div>
+        <NxTabBar active="boxes" onNav={onNav} />
+      </div>
+    );
+  }
 
   const queryText = reverse ? current.meaning : current.word;
 
