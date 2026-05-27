@@ -176,7 +176,7 @@ export function CodexScreen({ onNav, desktop }: CodexScreenProps) {
       {sel.size > 0 && (
         <div style={{ padding: '10px 16px', borderTop: '1px solid var(--line)', background: 'rgba(255,92,122,0.08)', display: 'flex', gap: 10, alignItems: 'center' }}>
           <span className="nx-mono" style={{ flex: 1 }}>{sel.size} {t('SELECTED')}</span>
-          <NxBtn ghost style={{ padding: '5px 10px' }}>{t('SELECT_ALL')}</NxBtn>
+          <NxBtn ghost style={{ padding: '5px 10px' }} onClick={() => setSel(new Set(sorted.map(w => w.id)))}>{t('SELECT_ALL')}</NxBtn>
           <NxBtn red style={{ padding: '5px 12px' }} onClick={() => { deleteWords([...sel]); setSel(new Set()); }}>
             <NxIcon kind="trash" size={14} /> {t('DELETE')}
           </NxBtn>

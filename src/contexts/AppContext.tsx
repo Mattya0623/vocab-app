@@ -19,6 +19,7 @@ interface AppContextValue {
   pickedBox: number;
   sessionSource: 'home' | 'box';
   selectedMap: number;
+  sessionLog: Array<{ word: string; correct: boolean }>;
   setScreen: (s: Screen) => void;
   setPickedBox: (n: number) => void;
   setSessionSource: (s: 'home' | 'box') => void;
@@ -48,6 +49,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [selectedMap, setSelectedMap]     = useState(0);
   const [currentStreak, setCurrentStreak] = useState(0);
   const [maxStreak, setMaxStreak]         = useState(0);
+  const [sessionLog, setSessionLog]       = useState<Array<{ word: string; correct: boolean }>>([]);
 
   // Refs let callbacks access current state without stale closures
   const userRef        = useRef<User | null>(null);
@@ -178,6 +180,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const word = wordsRef.current.find(w => w.id === wordId);
     if (!word) return;
 
+    setSessionLog(prev => [{ word: word.word, correct }, ...prev].slice(0, 10));
+
     const attempts        = word.attempts + 1;
     const correct_answers = word.correct_answers + (correct ? 1 : 0);
     const accuracy        = Math.round((correct_answers / attempts) * 100);
@@ -237,7 +241,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     <AppContext.Provider value={{
       user, username, authReady,
       words, stats, level, xp, screen,
-      pickedBox, sessionSource, selectedMap,
+      pickedBox, sessionSource, selectedMap, sessionLog,
       setScreen, setPickedBox, setSessionSource, setSelectedMap,
       recordAnswer, addWords, deleteWords,
       go, onAnswer, onNext, onExitSession, onPick,

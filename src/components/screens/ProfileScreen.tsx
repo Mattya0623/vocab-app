@@ -135,13 +135,15 @@ export function ProfileScreen({ onNav, desktop }: ProfileScreenProps) {
         title={t('PROFILE_HEAD')}
         sub={`LV·${String(level).padStart(2, '0')} · ${tierName} · ${xp} / ${maxXp} XP${asc > 0 ? ` · ★ ASC ${asc}` : ''}`}
         right={<NxTag amber>▲ {stats.currentStreak} {t('STREAK')}</NxTag>}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1.05fr 1fr', gridTemplateRows: 'auto 1fr', gap: 14, height: '100%', minWidth: 0 }}>
-          <div style={{ gridColumn: '1 / 2' }}>{heroCard(100, 24)}</div>
-          <div style={{ gridColumn: '2 / 3', display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '1fr 1fr', gap: 8, minWidth: 0 }}>
-            {kpiGrid(1)}
+        <div style={{ height: '100%', overflow: 'auto', display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1.05fr 1fr', gap: 14, alignItems: 'start' }}>
+            <div>{heroCard(100, 24)}</div>
+            <div>{kpiGrid(2)}</div>
           </div>
-          <div style={{ gridColumn: '1 / 2' }}>{nebulaChart}</div>
-          <div style={{ gridColumn: '2 / 3', minWidth: 0 }}>{badgeAndCurve}</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, flex: 1, minHeight: 280 }}>
+            <div style={{ minHeight: 0 }}>{nebulaChart}</div>
+            <div style={{ minHeight: 0 }}>{badgeAndCurve}</div>
+          </div>
         </div>
       </NxDesktopShell>
     );

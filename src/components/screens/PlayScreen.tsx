@@ -1,11 +1,13 @@
 'use client';
+import { useState, useMemo } from 'react';
 import { NxCard, NxBtn, NxTag, NxProgress, NxIcon } from '@/components/ui';
 import { NxMobileHeader } from '@/components/layout/NxMobileHeader';
 import { NxTabBar } from '@/components/layout/NxTabBar';
 import { NxDesktopShell } from '@/components/layout/NxDesktopShell';
 import { useT } from '@/contexts/I18nContext';
 import { useApp } from '@/contexts/AppContext';
-import type { Screen } from '@/types';
+import { boxOf, NEBULAE } from '@/data/nebulae';
+import type { Screen, Word } from '@/types';
 
 interface PlayScreenProps {
   onNav: (s: Screen) => void;
@@ -14,24 +16,85 @@ interface PlayScreenProps {
   desktop?: boolean;
 }
 
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function buildQuiz(words: Word[], reverse: boolean) {
+  const current = words[Math.floor(Math.random() * words.length)];
+  const correct  = reverse ? current.word    : current.meaning;
+  const pool     = shuffle(words.filter(w => w.id !== current.id))
+    .slice(0, 3)
+    .map(w => reverse ? w.word : w.meaning);
+  const options  = shuffle([correct, ...pool]);
+  return { current, options, correctIdx: options.indexOf(correct) };
+}
+
 export function PlayScreen({ onNav, onAnswer, reverse, desktop }: PlayScreenProps) {
   const t = useT();
-  const { level, xp, stats } = useApp();
+  const { level, xp, stats, words, recordAnswer, sessionLog } = useApp();
   const maxXp = 10 * level ** 2;
   const minXp = 10 * (level - 1) ** 2;
-  const xpPct = maxXp > minXp ? Math.round(((xp - minXp) / (maxXp - minXp)) * 100) : 0;
+  const xpPct  = maxXp > minXp ? Math.round(((xp - minXp) / (maxXp - minXp)) * 100) : 0;
 
-  const queryWord = reverse ? 'りんご' : 'apple';
-  const queryIpa = reverse ? null : '/ ˈæp.əl /';
-  const choices = reverse
-    ? ['apple', 'ephemeral', 'gregarious', 'serendipity']
-    : ['りんご', '儚い・短命の', '社交的な', '偶然の幸運'];
+  // Build quiz once per mount
+  const [quiz] = useState(() => buildQuiz(words, reverse));
+
+  const { current, options, correctIdx } = quiz;
+  const nebula = NEBULAE[boxOf(current.accuracy) - 1];
+
+  // Pad to 4 slots
+  const slots = [...options, '', '', '', ''].slice(0, 4) as string[];
+
+  const handleAnswer = (idx: number) => {
+    const ok = idx === correctIdx;
+    recordAnswer(current.id, ok);
+    onAnswer(ok);
+  };
+
+  const sessionCorrect = sessionLog.filter(l => l.correct).length;
+  const sessionWrong   = sessionLog.filter(l => !l.correct).length;
+  const sessionAcc     = sessionLog.length > 0
+    ? Math.round((sessionCorrect / sessionLog.length) * 100)
+    : 0;
+
+  const queryText  = reverse ? current.meaning : current.word;
+  const wordInfo   = (
+    <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginTop: desktop ? 18 : 14, flexWrap: 'wrap' }}>
+      <NxTag>{t('ATT_SHORT')} {current.attempts}</NxTag>
+      <NxTag green={current.accuracy >= 75} amber={current.accuracy >= 40 && current.accuracy < 75}
+        style={current.accuracy < 40 ? { color: 'var(--red)', borderColor: 'rgba(255,92,122,0.4)' } : {}}>
+        {t('ACC_SHORT')} {current.accuracy}%
+      </NxTag>
+      <NxTag mag>{nebula.name.toUpperCase()} · N{nebula.n}</NxTag>
+    </div>
+  );
+
+  const choiceButtons = (grid: boolean) => (
+    <div style={{ display: grid ? 'grid' : 'flex', gridTemplateColumns: grid ? '1fr 1fr' : undefined, flexDirection: grid ? undefined : 'column', gap: grid ? 12 : 10 }}>
+      {slots.map((c, i) =>
+        c ? (
+          <NxBtn key={i} choice onClick={() => handleAnswer(i)} style={{ padding: grid ? '18px 16px' : undefined, fontSize: grid ? 17 : undefined }}>
+            <span style={{ width: grid ? 30 : 24, height: grid ? 30 : 24, border: '1px solid var(--line-bright)', borderRadius: grid ? 6 : 4, display: 'grid', placeItems: 'center', fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--cyan)', marginRight: grid ? 10 : 4, flexShrink: 0 }}>{i + 1}</span>
+            <span style={{ flex: 1 }}>{c}</span>
+          </NxBtn>
+        ) : (
+          <div key={i} style={{ height: grid ? 58 : 48, border: '1px dashed rgba(118,138,220,0.2)', borderRadius: 8, opacity: 0.4 }} />
+        )
+      )}
+    </div>
+  );
 
   if (desktop) {
     return (
       <NxDesktopShell active="home" onNav={onNav}
         title={`${t('PLAY')} · ${t('PLAY_SUB')}`}
-        sub={`ALL · 142 WORDS · ${reverse ? 'JA → EN' : 'EN → JA'}`}
+        sub={`${reverse ? 'JA → EN' : 'EN → JA'} · ${words.length} ${t('ENTRIES')}`}
         right={<>
           <NxTag amber>▲ {stats.currentStreak} {t('STREAK')}</NxTag>
           <NxTag cyan>LV·{String(level).padStart(2, '0')}</NxTag>
@@ -42,36 +105,24 @@ export function PlayScreen({ onNav, onAnswer, reverse, desktop }: PlayScreenProp
         <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 20, height: '100%' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <NxCard glow="cyan" bracket scan style={{ padding: 36, textAlign: 'center', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-              <div className="nx-overline" style={{ color: 'var(--cyan)' }}>{t('QUERY')} · CARD #042</div>
-              <div className="nx-h glow" style={{ fontSize: 96, marginTop: 14, letterSpacing: '0.02em' }}>{queryWord}</div>
-              {queryIpa && <div className="nx-mono" style={{ marginTop: 8, fontSize: 13 }}>{queryIpa}</div>}
-              <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 18 }}>
-                <NxTag>{t('ATT_SHORT')} 12</NxTag>
-                <NxTag green>{t('ACC_SHORT')} 92%</NxTag>
-                <NxTag amber>POLARIS · N6</NxTag>
-              </div>
+              <div className="nx-overline" style={{ color: 'var(--cyan)' }}>{t('QUERY')}</div>
+              <div className="nx-h glow" style={{ fontSize: 72, marginTop: 14, letterSpacing: '0.02em', lineHeight: 1 }}>{queryText}</div>
+              {wordInfo}
             </NxCard>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              {choices.map((c, i) => (
-                <NxBtn key={i} choice onClick={() => onAnswer(i === 0)} style={{ padding: '18px 16px', fontSize: 17 }}>
-                  <span style={{ width: 30, height: 30, border: '1px solid var(--line-bright)', borderRadius: 6, display: 'grid', placeItems: 'center', fontFamily: 'var(--mono)', fontSize: 12, marginRight: 10, color: 'var(--cyan)', flexShrink: 0 }}>{i + 1}</span>
-                  <span style={{ flex: 1 }}>{c}</span>
-                </NxBtn>
-              ))}
-            </div>
+            {choiceButtons(true)}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <NxCard style={{ padding: 14 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
                 <span className="nx-h" style={{ fontSize: 12 }}>{t('SESSION')}</span>
-                <span className="nx-mono">8 / 50</span>
+                <span className="nx-mono">{sessionLog.length} ANS</span>
               </div>
-              <NxProgress value={16} />
+              <NxProgress value={xpPct} />
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10, gap: 8 }}>
                 {[
-                  { label: t('CORRECT_LOG'), val: stats.currentStreak, color: 'var(--green)', bg: 'rgba(92,255,157,0.08)', border: 'rgba(92,255,157,0.3)' },
-                  { label: t('WRONG_LOG'),   val: 3,                   color: 'var(--red)',   bg: 'rgba(255,92,122,0.08)',  border: 'rgba(255,92,122,0.3)' },
-                  { label: t('ACC_SHORT'),   val: '62%',               color: 'var(--cyan)',  bg: 'rgba(92,232,255,0.08)',  border: 'rgba(92,232,255,0.3)' },
+                  { label: t('CORRECT_LOG'), val: sessionCorrect, color: 'var(--green)', bg: 'rgba(92,255,157,0.08)',  border: 'rgba(92,255,157,0.3)' },
+                  { label: t('WRONG_LOG'),   val: sessionWrong,   color: 'var(--red)',   bg: 'rgba(255,92,122,0.08)',  border: 'rgba(255,92,122,0.3)' },
+                  { label: t('ACC_SHORT'),   val: `${sessionAcc}%`, color: 'var(--cyan)', bg: 'rgba(92,232,255,0.08)', border: 'rgba(92,232,255,0.3)' },
                 ].map((s, i) => (
                   <div key={i} style={{ flex: 1, textAlign: 'center', padding: '6px 4px', borderRadius: 6, background: s.bg, border: `1px solid ${s.border}` }}>
                     <div className="nx-overline">{s.label}</div>
@@ -93,12 +144,17 @@ export function PlayScreen({ onNav, onAnswer, reverse, desktop }: PlayScreenProp
             </NxCard>
             <NxCard style={{ padding: 14, flex: 1, overflow: 'hidden' }}>
               <span className="nx-h" style={{ fontSize: 12 }}>{t('RECENT_LOG')}</span>
-              <div style={{ marginTop: 8 }}>
-                {[['serendipity', true, '+1'], ['lucid', true, '+1'], ['obfuscate', false, '+0'], ['gregarious', false, '+0'], ['pragmatic', true, '+1']].map(([w, ok, xp], i) => (
+              <div style={{ marginTop: 8, overflow: 'auto', maxHeight: '100%' }}>
+                {sessionLog.length === 0 && (
+                  <div className="nx-overline" style={{ color: 'var(--ink-mute)', textAlign: 'center', marginTop: 16 }}>
+                    // まだ回答がありません
+                  </div>
+                )}
+                {sessionLog.map((entry, i) => (
                   <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'center', padding: '6px 0', borderBottom: '1px solid rgba(118,138,220,0.1)', fontSize: 13 }}>
-                    <NxIcon kind={ok ? 'check' : 'x'} size={14} color={ok ? 'var(--green)' : 'var(--red)'} glow />
-                    <span style={{ flex: 1 }}>{w}</span>
-                    <span className="nx-mono" style={{ color: ok ? 'var(--green)' : 'var(--ink-mute)' }}>{xp} XP</span>
+                    <NxIcon kind={entry.correct ? 'check' : 'x'} size={14} color={entry.correct ? 'var(--green)' : 'var(--red)'} glow />
+                    <span style={{ flex: 1 }}>{entry.word}</span>
+                    <span className="nx-mono" style={{ color: entry.correct ? 'var(--green)' : 'var(--ink-mute)' }}>{entry.correct ? '+1 XP' : '+0'}</span>
                   </div>
                 ))}
               </div>
@@ -113,8 +169,8 @@ export function PlayScreen({ onNav, onAnswer, reverse, desktop }: PlayScreenProp
     <div style={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column' }}>
       <NxMobileHeader
         title={`${t('PLAY')} · ${t('PLAY_SUB')}`}
-        sub={`ALL · 142 WORDS · ${reverse ? 'JA → EN' : 'EN → JA'}`}
-        left={<NxIcon kind="back" size={18} color="var(--ink-soft)" />}
+        sub={`${reverse ? 'JA → EN' : 'EN → JA'} · ${words.length} ${t('ENTRIES')}`}
+        left={<div onClick={() => onNav('maps')} style={{ cursor: 'pointer' }}><NxIcon kind="back" size={18} color="var(--ink-soft)" /></div>}
         right={<div onClick={() => onNav('settings')} style={{ cursor: 'pointer' }}><NxIcon kind="settings" size={18} color="var(--ink-soft)" /></div>}
       />
       <div style={{ padding: '10px 16px 0', display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -123,35 +179,19 @@ export function PlayScreen({ onNav, onAnswer, reverse, desktop }: PlayScreenProp
         <span className="nx-mono">{xp}/{maxXp} XP</span>
       </div>
       <div style={{ padding: '6px 16px', display: 'flex', justifyContent: 'space-between' }}>
-        <span className="nx-mono">{t('SESSION')} 8 / 50</span>
+        <span className="nx-mono">{t('SESSION')} {sessionLog.length} ANS</span>
         <span className="nx-mono" style={{ color: 'var(--amber)' }}>▲ {stats.currentStreak} {t('STREAK')}</span>
       </div>
       <div style={{ flex: 1, padding: 16, display: 'flex', flexDirection: 'column', gap: 14, minHeight: 0 }}>
         <NxCard glow="cyan" bracket scan style={{ padding: '24px 18px', textAlign: 'center', flexShrink: 0 }}>
           <div className="nx-overline" style={{ color: 'var(--cyan)' }}>{t('QUERY')}</div>
-          <div className="nx-h glow" style={{ fontSize: 44, marginTop: 8, letterSpacing: '0.02em' }}>{queryWord}</div>
-          {queryIpa && <div className="nx-mono" style={{ marginTop: 4 }}>{queryIpa}</div>}
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginTop: 14, flexWrap: 'wrap' }}>
-            <NxTag>{t('ATT_SHORT')} 12</NxTag>
-            <NxTag green>{t('ACC_SHORT')} 92%</NxTag>
-            <NxTag mag>POLARIS · N6</NxTag>
-          </div>
+          <div className="nx-h glow" style={{ fontSize: 44, marginTop: 8, letterSpacing: '0.02em', lineHeight: 1.1 }}>{queryText}</div>
+          {wordInfo}
         </NxCard>
         <div className="nx-overline" style={{ textAlign: 'center', color: 'var(--ink-mute)' }}>
           {reverse ? t('PICK_WORD') : t('PICK_MEANING')}
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 10 }}>
-          {choices.map((c, i) => (
-            <NxBtn key={i} choice onClick={() => onAnswer(i === 0)}>
-              <span style={{ width: 24, height: 24, border: '1px solid var(--line-bright)', borderRadius: 4, display: 'grid', placeItems: 'center', fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--ink-soft)', marginRight: 4, flexShrink: 0 }}>{i + 1}</span>
-              <span style={{ flex: 1 }}>{c}</span>
-            </NxBtn>
-          ))}
-        </div>
-        <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span className="nx-mono">⌃ {t('HINT')}</span>
-          <NxBtn ghost style={{ padding: '6px 10px', fontSize: 11 }}>{t('SKIP')} →</NxBtn>
-        </div>
+        {choiceButtons(false)}
       </div>
       <NxTabBar active="home" onNav={onNav} />
     </div>
