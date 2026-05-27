@@ -32,8 +32,11 @@ export const TR: TranslationMap = {
   PLAY_SUB:    { en: 'All words mode',  ja: '全単語モード',   zh: '全词模式',     ko: '전체 모드' },
   NEBULAE_SUB: { en: '7 star clusters', ja: '7つの星雲',     zh: '7个星云',      ko: '7개의 성운' },
   CODEX_SUB:   { en: 'Word library',   ja: '単語管理',       zh: '词汇管理',     ko: '단어 관리' },
-  IMPORT_SUB:  { en: 'Add new entries', ja: 'インポート',    zh: '添加新词',     ko: '새 항목 추가' },
-  PROFILE_SUB: { en: 'Stats & level',  ja: '統計 & レベル',  zh: '统计与等级',   ko: '통계 & 레벨' },
+  IMPORT_SUB:  { en: 'Add new entries',    ja: 'インポート',        zh: '添加新词',       ko: '새 항목 추가' },
+  ACHIEVE:     { en: 'ACHIEVE',            ja: 'ACHIEVE',           zh: '成就',           ko: '업적' },
+  ACHIEVE_SUB: { en: 'Badges & milestones', ja: 'バッジ & 実績',   zh: '徽章与里程碑',   ko: '배지 & 업적' },
+  ACHIEVE_HEAD:{ en: 'ACHIEVEMENTS · バッジ', ja: 'ACHIEVEMENTS · バッジ', zh: '成就 · 徽章', ko: '업적 · 배지' },
+  PROFILE_SUB: { en: 'Stats & level',      ja: '統計 & レベル',     zh: '统计与等级',     ko: '통계 & 레벨' },
   SETTINGS_SUB:{ en: 'Preferences',    ja: '設定',           zh: '偏好设置',     ko: '환경 설정' },
 
   TAGLINE_1:   { en: 'Cast light again on the words',       ja: '覚えるのが苦手な単語に、', zh: '为难记的单词', ko: '외우기 어려운 단어에' },

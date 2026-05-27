@@ -7,6 +7,7 @@ import { useT } from '@/contexts/I18nContext';
 import { useApp } from '@/contexts/AppContext';
 import { levelColor, levelTierName, levelAscension, levelToMinXp, levelToMaxXp, LEVEL_TIER_NAMES, LEVEL_COLORS } from '@/lib/level';
 import { NEBULAE, boxOf } from '@/data/nebulae';
+import { ACHIEVEMENTS } from '@/data/achievements';
 import type { Screen } from '@/types';
 
 interface ProfileScreenProps {
@@ -14,17 +15,16 @@ interface ProfileScreenProps {
   desktop?: boolean;
 }
 
-const BADGES = [
-  { icon: 'flame' as const, label: 'STREAK 10', c: 'amber', got: true },
-  { icon: 'medal' as const, label: '100 ANS',   c: 'cyan',  got: true },
-  { icon: 'star'  as const, label: 'LV·5',      c: 'mag',   got: true },
-  { icon: 'book'  as const, label: '満NEBULA',  c: 'lime',  got: false },
-];
-
 export function ProfileScreen({ onNav, desktop }: ProfileScreenProps) {
   const t = useT();
   const { level, xp, stats, username, words } = useApp();
   const nebulaWordCounts = NEBULAE.map(b => words.filter(w => boxOf(w.accuracy) === b.n).length);
+
+  const ctx = { words, stats, level };
+  const earnedBadges = ACHIEVEMENTS
+    .map(a => ({ ...a, ...a.check(ctx) }))
+    .filter(a => a.unlocked)
+    .slice(0, desktop ? 6 : 4);
   const c = levelColor(level);
   const tierName = levelTierName(level);
   const asc = levelAscension(level);
@@ -116,18 +116,27 @@ export function ProfileScreen({ onNav, desktop }: ProfileScreenProps) {
 
   const badgeAndCurve = (
     <NxCard style={{ padding: 12, minWidth: 0, overflow: 'hidden' }}>
-      <span className="nx-h glow" style={{ fontSize: 12, color: 'var(--cyan)' }}>{t('BADGES')}</span>
-      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${desktop ? 5 : 4}, 1fr)`, gap: 6, marginTop: 8 }}>
-        {(desktop
-          ? [...BADGES, { icon: 'medal' as const, label: '1000', c: 'amber', got: false }]
-          : BADGES
-        ).map((bg, i) => (
-          <div key={i} style={{ padding: desktop ? 6 : 8, textAlign: 'center', borderRadius: desktop ? 6 : 8, border: `1px solid ${bg.got ? `var(--${bg.c})` : 'var(--line)'}`, background: bg.got ? `rgba(255,255,255,0.04)` : 'rgba(18,22,58,0.4)', boxShadow: bg.got ? `0 0 ${desktop ? 18 : 16}px -8px var(--${bg.c})` : 'none', opacity: bg.got ? 1 : 0.45 }}>
-            <NxIcon kind={bg.icon} size={desktop ? 22 : 20} color={bg.got ? `var(--${bg.c})` : 'var(--ink-mute)'} glow={bg.got} />
-            <div className="nx-overline" style={{ fontSize: 8, marginTop: 4, color: bg.got ? `var(--${bg.c})` : 'var(--ink-mute)', whiteSpace: 'nowrap' }}>{bg.label}</div>
-          </div>
-        ))}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+        <span className="nx-h glow" style={{ fontSize: 12, color: 'var(--cyan)' }}>{t('BADGES')}</span>
+        <span onClick={() => onNav('achieve')} className="nx-clickable nx-overline" style={{ fontSize: 9, color: 'var(--cyan)', whiteSpace: 'nowrap' }}>
+          すべて見る →
+        </span>
       </div>
+      {earnedBadges.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '16px 0', opacity: 0.5 }}>
+          <div style={{ fontSize: 24 }}>🔒</div>
+          <div className="nx-overline" style={{ marginTop: 6, fontSize: 9 }}>まだアチーブメントがありません</div>
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${desktop ? Math.min(earnedBadges.length, 6) : Math.min(earnedBadges.length, 4)}, 1fr)`, gap: 6, marginTop: 8 }}>
+          {earnedBadges.map(bg => (
+            <div key={bg.id} style={{ padding: desktop ? 6 : 8, textAlign: 'center', borderRadius: desktop ? 6 : 8, border: '1px solid rgba(92,232,255,0.35)', background: 'rgba(92,232,255,0.05)', boxShadow: '0 0 16px -8px rgba(92,232,255,0.5)' }}>
+              <div style={{ fontSize: desktop ? 22 : 20, lineHeight: 1 }}>{bg.emoji}</div>
+              <div className="nx-overline" style={{ fontSize: 8, marginTop: 4, color: 'var(--cyan)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{bg.name}</div>
+            </div>
+          ))}
+        </div>
+      )}
       {desktop && (
         <>
           <div className="nx-divider" style={{ margin: '10px 0' }} />

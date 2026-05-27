@@ -44,7 +44,7 @@ export type Lang = 'ja' | 'en' | 'zh' | 'ko';
 export type Screen =
   | 'login' | 'setup' | 'empty' | 'maps' | 'home' | 'timer'
   | 'result_ok' | 'result_ng' | 'boxes' | 'boxquiz'
-  | 'list' | 'import' | 'stats' | 'settings';
+  | 'list' | 'import' | 'achieve' | 'stats' | 'settings';
 
 export type SortKey = 'default' | 'acc_asc' | 'acc_desc' | 'att_desc' | 'az';
 

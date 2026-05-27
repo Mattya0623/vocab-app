@@ -15,6 +15,7 @@ import { ProfileScreen } from '@/components/screens/ProfileScreen';
 import { SettingsScreen } from '@/components/screens/SettingsScreen';
 import { CosmosMapScreen } from '@/components/screens/CosmosMapScreen';
 import { TimerScreen } from '@/components/screens/TimerScreen';
+import { AchievementScreen } from '@/components/screens/AchievementScreen';
 import type { Screen } from '@/types';
 
 function useIsDesktop() {
@@ -65,6 +66,8 @@ export default function Home() {
         return <CodexScreen onNav={nav} desktop={desktop} />;
       case 'import':
         return <ImportScreen onNav={nav} desktop={desktop} />;
+      case 'achieve':
+        return <AchievementScreen onNav={nav} desktop={desktop} />;
       case 'stats':
         return <ProfileScreen onNav={nav} desktop={desktop} />;
       case 'settings':
