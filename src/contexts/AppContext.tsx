@@ -60,11 +60,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // Refs let callbacks access current state without stale closures
   const userRef        = useRef<User | null>(null);
   const wordsRef       = useRef<Word[]>([]);
+  const maxStreakRef   = useRef(0);
   const dbRef          = useRef<Firestore | undefined>(undefined);
   const wordsUnsubRef  = useRef<(() => void) | undefined>(undefined);
 
-  useEffect(() => { userRef.current  = user; },  [user]);
-  useEffect(() => { wordsRef.current = words; }, [words]);
+  useEffect(() => { userRef.current      = user; },      [user]);
+  useEffect(() => { wordsRef.current     = words; },     [words]);
+  useEffect(() => { maxStreakRef.current = maxStreak; }, [maxStreak]);
+
+  // Persist maxStreak to Firestore whenever it increases
+  useEffect(() => {
+    const u = userRef.current;
+    const db = dbRef.current;
+    if (!u || u.isAnonymous || !db || maxStreak === 0) return;
+    import('@/lib/firestore').then(({ saveMaxStreak }) =>
+      saveMaxStreak(db, u.uid, maxStreak).catch(console.error)
+    );
+  }, [maxStreak]);
 
   // ── Firebase auth subscription ──────────────────────────────────────────
   useEffect(() => {
@@ -118,6 +130,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           }
 
           setUsername(profile.username);
+          if (profile.maxStreak) setMaxStreak(profile.maxStreak);
           setScreen(s => (s === 'login' || s === 'setup') ? 'maps' : s);
           wordsUnsubRef.current = subscribeWords(db, firebaseUser.uid, setWords);
         } catch (e) {
@@ -141,7 +154,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     if (u && !u.isAnonymous && db) {
       const { saveProfile, subscribeWords } = await import('@/lib/firestore');
-      await saveProfile(db, u.uid, name);
+      await saveProfile(db, u.uid, name, maxStreakRef.current);
       wordsUnsubRef.current?.();
       wordsUnsubRef.current = subscribeWords(db, u.uid, setWords);
     }
@@ -162,6 +175,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setUser(null);
     setWords([]);
     setUsername('');
+    setMaxStreak(0);
+    setCurrentStreak(0);
+    setSessionLog([]);
     setScreen('login');
   }, []);
 

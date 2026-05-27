@@ -5,18 +5,33 @@ import {
 } from 'firebase/firestore';
 import type { Word } from '@/types';
 
+// Profile stored at users/{uid}/profile/main — 4 path segments (valid Firestore doc path).
+// users/{uid}/profile would be 3 segments (a collection ref), which Firestore rejects.
+const profileRef = (db: Firestore, uid: string) =>
+  doc(db, 'users', uid, 'profile', 'main');
+
 export interface UserProfile {
   username: string;
+  maxStreak: number;
   createdAt: unknown;
 }
 
 export async function getProfile(db: Firestore, uid: string): Promise<UserProfile | null> {
-  const snap = await getDoc(doc(db, 'users', uid, 'profile'));
+  const snap = await getDoc(profileRef(db, uid));
   return snap.exists() ? (snap.data() as UserProfile) : null;
 }
 
-export async function saveProfile(db: Firestore, uid: string, username: string): Promise<void> {
-  await setDoc(doc(db, 'users', uid, 'profile'), { username, createdAt: serverTimestamp() });
+export async function saveProfile(
+  db: Firestore,
+  uid: string,
+  username: string,
+  maxStreak = 0,
+): Promise<void> {
+  await setDoc(profileRef(db, uid), { username, maxStreak, createdAt: serverTimestamp() });
+}
+
+export async function saveMaxStreak(db: Firestore, uid: string, maxStreak: number): Promise<void> {
+  await setDoc(profileRef(db, uid), { maxStreak }, { merge: true });
 }
 
 export function subscribeWords(
