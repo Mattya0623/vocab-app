@@ -15,7 +15,7 @@ interface SettingsScreenProps {
 export function SettingsScreen({ onNav, desktop }: SettingsScreenProps) {
   const t = useT();
   const { lang, reverse, setLang, setReverse } = useI18n();
-  const { user, username, logout } = useApp();
+  const { user, username, logout, words, deleteWords } = useApp();
 
   const studySection = (
     <div>
@@ -110,7 +110,12 @@ export function SettingsScreen({ onNav, desktop }: SettingsScreenProps) {
           <span style={{ flex: 1 }}>{t('SIGN_OUT')}</span>
           <NxIcon kind="arrow" size={14} color="var(--ink-mute)" />
         </div>
-        <div style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div onClick={() => {
+            if (words.length === 0) return;
+            if (window.confirm(t('DELETE_CONFIRM'))) deleteWords(words.map(w => w.id));
+          }}
+          className="nx-clickable"
+          style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 10, opacity: words.length === 0 ? 0.4 : 1 }}>
           <NxIcon kind="trash" size={16} color="var(--red)" />
           <div style={{ flex: 1 }}>
             <div style={{ color: 'var(--red)', fontSize: 14 }}>{t('DELETE_DATA')}</div>

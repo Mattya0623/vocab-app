@@ -3,11 +3,11 @@ import { NxCard, NxBtn, NxTag, NxProgress, NxIcon, LevelAvatar } from '@/compone
 import { NxMobileHeader } from '@/components/layout/NxMobileHeader';
 import { NxTabBar } from '@/components/layout/NxTabBar';
 import { NxDesktopShell } from '@/components/layout/NxDesktopShell';
-import { useT } from '@/contexts/I18nContext';
+import { useT, useI18n } from '@/contexts/I18nContext';
 import { useApp } from '@/contexts/AppContext';
 import { levelColor, levelTierName, levelAscension, levelToMinXp, levelToMaxXp, LEVEL_TIER_NAMES, LEVEL_COLORS } from '@/lib/level';
 import { NEBULAE, boxOf } from '@/data/nebulae';
-import { ACHIEVEMENTS } from '@/data/achievements';
+import { ACHIEVEMENTS, type I18nStr } from '@/data/achievements';
 import type { Screen } from '@/types';
 
 interface ProfileScreenProps {
@@ -17,6 +17,8 @@ interface ProfileScreenProps {
 
 export function ProfileScreen({ onNav, desktop }: ProfileScreenProps) {
   const t = useT();
+  const { lang } = useI18n();
+  const loc = (s: I18nStr) => s[lang as keyof I18nStr] ?? s.en;
   const { level, xp, stats, username, words } = useApp();
   const nebulaWordCounts = NEBULAE.map(b => words.filter(w => boxOf(w.accuracy) === b.n).length);
 
@@ -132,7 +134,7 @@ export function ProfileScreen({ onNav, desktop }: ProfileScreenProps) {
           {earnedBadges.map(bg => (
             <div key={bg.id} style={{ padding: desktop ? 6 : 8, textAlign: 'center', borderRadius: desktop ? 6 : 8, border: '1px solid rgba(92,232,255,0.35)', background: 'rgba(92,232,255,0.05)', boxShadow: '0 0 16px -8px rgba(92,232,255,0.5)' }}>
               <div style={{ fontSize: desktop ? 22 : 20, lineHeight: 1 }}>{bg.emoji}</div>
-              <div className="nx-overline" style={{ fontSize: 8, marginTop: 4, color: 'var(--cyan)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{bg.name}</div>
+              <div className="nx-overline" style={{ fontSize: 8, marginTop: 4, color: 'var(--cyan)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{loc(bg.name)}</div>
             </div>
           ))}
         </div>

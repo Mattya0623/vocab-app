@@ -36,6 +36,7 @@ export const TR: TranslationMap = {
   ACHIEVE:     { en: 'ACHIEVE',            ja: 'ACHIEVE',           zh: '成就',           ko: '업적' },
   ACHIEVE_SUB: { en: 'Badges & milestones', ja: 'バッジ & 実績',   zh: '徽章与里程碑',   ko: '배지 & 업적' },
   ACHIEVE_HEAD:{ en: 'ACHIEVEMENTS · バッジ', ja: 'ACHIEVEMENTS · バッジ', zh: '成就 · 徽章', ko: '업적 · 배지' },
+  UNLOCKED:    { en: 'unlocked',             ja: '解放済み',             zh: '已解锁',         ko: '해제됨' },
   PROFILE_SUB: { en: 'Stats & level',      ja: '統計 & レベル',     zh: '统计与等级',     ko: '통계 & 레벨' },
   SETTINGS_SUB:{ en: 'Preferences',    ja: '設定',           zh: '偏好设置',     ko: '환경 설정' },
 
@@ -163,6 +164,7 @@ export const TR: TranslationMap = {
   ACCOUNT_SECTION: { en: 'ACCOUNT',          ja: 'アカウント',      zh: '账户',        ko: '계정' },
   SIGN_OUT:        { en: 'Sign out',          ja: 'ログアウト',     zh: '退出登录',    ko: '로그아웃' },
   DELETE_DATA:     { en: 'Delete all data',   ja: '全データを削除', zh: '删除全部数据', ko: '모든 데이터 삭제' },
+  DELETE_CONFIRM:  { en: 'Delete all words? This cannot be undone.', ja: '全単語を削除しますか？この操作は元に戻せません。', zh: '确定删除所有单词？此操作无法撤销。', ko: '모든 단어를 삭제하시겠습니까? 되돌릴 수 없습니다.' },
   DANGER_ZONE:     { en: 'DANGER ZONE',       ja: '危険な操作',     zh: '危险操作',    ko: '위험 구역' },
   DANGER_DESC:     { en: 'Irreversible — all words, attempts, streaks gone.',
                      ja: '全単語・試行・ストリークが完全に消去されます。',

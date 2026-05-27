@@ -4,9 +4,9 @@ import { NxCard, NxIcon, NxProgress } from '@/components/ui';
 import { NxMobileHeader } from '@/components/layout/NxMobileHeader';
 import { NxTabBar } from '@/components/layout/NxTabBar';
 import { NxDesktopShell } from '@/components/layout/NxDesktopShell';
-import { useT } from '@/contexts/I18nContext';
+import { useT, useI18n } from '@/contexts/I18nContext';
 import { useApp } from '@/contexts/AppContext';
-import { ACHIEVEMENTS, CATEGORY_META, type AchieveCategory } from '@/data/achievements';
+import { ACHIEVEMENTS, CATEGORY_META, type AchieveCategory, type I18nStr } from '@/data/achievements';
 import type { Screen } from '@/types';
 
 interface AchievementScreenProps {
@@ -16,6 +16,8 @@ interface AchievementScreenProps {
 
 export function AchievementScreen({ onNav, desktop }: AchievementScreenProps) {
   const t = useT();
+  const { lang } = useI18n();
+  const loc = (s: I18nStr) => s[lang as keyof I18nStr] ?? s.en;
   const { words, stats, level } = useApp();
   const [cat, setCat] = useState<AchieveCategory>('all');
 
@@ -81,10 +83,10 @@ export function AchievementScreen({ onNav, desktop }: AchievementScreenProps) {
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontFamily: 'var(--display)', fontWeight: 700, fontSize: 12, letterSpacing: '0.05em', color: a.unlocked ? 'var(--ink)' : 'var(--ink-soft)' }}>
-              {a.name}
+              {loc(a.name)}
             </div>
             <div style={{ fontSize: 10, color: 'var(--ink-mute)', marginTop: 2, lineHeight: 1.4 }}>
-              {a.desc}
+              {loc(a.desc)}
             </div>
           </div>
           {a.unlocked ? (
@@ -118,7 +120,7 @@ export function AchievementScreen({ onNav, desktop }: AchievementScreenProps) {
     return (
       <NxDesktopShell active="achieve" onNav={onNav}
         title={t('ACHIEVE_HEAD')}
-        sub={`${unlockedCount} / ${totalCount} 解放済み`}>
+        sub={`${unlockedCount} / ${totalCount} ${t('UNLOCKED')}`}>
         <NxCard style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: 0 }}>
           <div style={{ padding: '10px 18px', borderBottom: '1px solid var(--line)', background: 'rgba(28,34,80,0.4)' }}>
             {catBar}
@@ -137,7 +139,7 @@ export function AchievementScreen({ onNav, desktop }: AchievementScreenProps) {
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <NxMobileHeader
         title="ACHIEVEMENTS"
-        sub={`${unlockedCount} / ${totalCount} 解放済み`}
+        sub={`${unlockedCount} / ${totalCount} ${t('UNLOCKED')}`}
         left={<span style={{ fontSize: 18, lineHeight: 1 }}>🏆</span>}
       />
       <div style={{ padding: '8px 16px', borderBottom: '1px solid var(--line)', background: 'rgba(4,5,26,0.4)' }}>
