@@ -31,12 +31,37 @@ export function ImportScreen({ onNav, desktop }: ImportScreenProps) {
   const t = useT();
   const { addWords } = useApp();
   const [csv, setCsv] = useState(DEFAULT_CSV);
+  const [tagInput, setTagInput] = useState('');
   const preview = parseCSV(csv);
 
+  const parsedTags = tagInput.trim()
+    ? tagInput.split(/[,、]/).map(s => s.trim()).filter(Boolean)
+    : [];
+
   const handleAdd = () => {
-    addWords(preview);
+    if (preview.length === 0) return;
+    const withTags = preview.map(w => ({
+      ...w,
+      ...(parsedTags.length > 0 ? { tags: parsedTags } : {}),
+    }));
+    addWords(withTags);
     onNav('list');
   };
+
+  const tagRow = (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+      <span className="nx-overline" style={{ whiteSpace: 'nowrap' }}>タグ</span>
+      <NxInput
+        placeholder="例：名詞、N3（カンマ区切りで複数）"
+        value={tagInput}
+        onChange={e => setTagInput(e.target.value)}
+        style={{ flex: 1, minWidth: 160, padding: '6px 10px', fontSize: 13 }}
+      />
+      {parsedTags.map(tg => (
+        <NxTag key={tg} cyan>{tg}</NxTag>
+      ))}
+    </div>
+  );
 
   const importForm = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14, height: desktop ? '100%' : undefined }}>
@@ -54,6 +79,7 @@ export function ImportScreen({ onNav, desktop }: ImportScreenProps) {
         <div className="nx-divider" style={{ flex: 1 }} />
       </div>
       <NxInput area value={csv} onChange={e => setCsv(e.target.value)} style={{ flex: desktop ? '1' : undefined }} />
+      {tagRow}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <span className="nx-overline">{t('DELIMITER')}</span>
         <NxTag cyan>{t('COMMA')}</NxTag>
@@ -66,22 +92,30 @@ export function ImportScreen({ onNav, desktop }: ImportScreenProps) {
 
   const previewPanel = (
     <NxCard glow="cyan" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: 0, flex: desktop ? 1 : undefined }}>
-      <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--line)', display: 'flex', justifyContent: 'space-between' }}>
+      <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--line)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
         <span className="nx-h glow" style={{ fontSize: 13, color: 'var(--cyan)' }}>{t('PREVIEW')}</span>
-        <span className="nx-mono">{preview.length} NEW · 0 DUPE</span>
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+          {parsedTags.map(tg => <NxTag key={tg} cyan>{tg}</NxTag>)}
+          <span className="nx-mono">{preview.length} NEW · 0 DUPE</span>
+        </div>
       </div>
       <div style={{ flex: 1, overflow: 'auto' }}>
         {preview.map((w, i) => (
-          <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 1.3fr 70px', padding: '10px 18px', gap: 12, borderBottom: '1px solid rgba(118,138,220,0.1)', alignItems: 'center' }}>
+          <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 1.3fr auto', padding: '10px 18px', gap: 12, borderBottom: '1px solid rgba(118,138,220,0.1)', alignItems: 'center' }}>
             <span style={{ fontWeight: 600 }}>{w.word}</span>
             <span style={{ color: 'var(--ink-soft)' }}>{w.meaning}</span>
-            <NxTag green>NEW</NxTag>
+            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+              {parsedTags.length > 0
+                ? parsedTags.map(tg => <NxTag key={tg} cyan style={{ fontSize: 9 }}>{tg}</NxTag>)
+                : <NxTag green>NEW</NxTag>
+              }
+            </div>
           </div>
         ))}
       </div>
       <div style={{ padding: 14, borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(28,34,80,0.4)' }}>
         <span className="nx-overline">{preview.length} 単語を追加 · 既存は影響しません</span>
-        <NxBtn primary lg onClick={handleAdd}>{t('ADD_ACTION')}</NxBtn>
+        <NxBtn primary lg onClick={handleAdd} style={{ opacity: preview.length === 0 ? 0.4 : 1 }}>{t('ADD_ACTION')}</NxBtn>
       </div>
     </NxCard>
   );
@@ -103,9 +137,12 @@ export function ImportScreen({ onNav, desktop }: ImportScreenProps) {
       <div style={{ flex: 1, padding: 16, overflow: 'auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
         {importForm}
         <NxCard glow="cyan" style={{ padding: 12 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span className="nx-h glow" style={{ fontSize: 12, color: 'var(--cyan)' }}>{t('PREVIEW')}</span>
-            <span className="nx-mono">{preview.length} NEW · 0 DUPE</span>
+            <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+              {parsedTags.map(tg => <NxTag key={tg} cyan style={{ fontSize: 9 }}>{tg}</NxTag>)}
+              <span className="nx-mono">{preview.length}</span>
+            </div>
           </div>
           <div className="nx-divider" style={{ margin: '6px 0' }} />
           {preview.slice(0, 3).map((w, i) => (
@@ -117,9 +154,12 @@ export function ImportScreen({ onNav, desktop }: ImportScreenProps) {
           {preview.length > 3 && <div className="nx-overline" style={{ marginTop: 4 }}>+ {preview.length - 3} more…</div>}
         </NxCard>
       </div>
-      <div style={{ padding: 14, borderTop: '1px solid var(--line)', display: 'flex', gap: 10 }}>
-        <NxBtn block ghost onClick={() => onNav('list')}>{t('CANCEL')}</NxBtn>
-        <NxBtn primary lg block onClick={handleAdd}>+{preview.length} を追加 →</NxBtn>
+      <div style={{ padding: 14, borderTop: '1px solid var(--line)', display: 'flex', flexDirection: 'column', gap: 8, background: 'rgba(4,5,26,0.8)' }}>
+        {tagRow}
+        <div style={{ display: 'flex', gap: 10 }}>
+          <NxBtn block ghost onClick={() => onNav('list')}>{t('CANCEL')}</NxBtn>
+          <NxBtn primary lg block onClick={handleAdd} style={{ opacity: preview.length === 0 ? 0.4 : 1 }}>+{preview.length} を追加 →</NxBtn>
+        </div>
       </div>
     </div>
   );

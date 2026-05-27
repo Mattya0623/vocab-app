@@ -37,18 +37,31 @@ function buildQuiz(words: Word[], reverse: boolean) {
 
 export function PlayScreen({ onNav, onAnswer, reverse, desktop }: PlayScreenProps) {
   const t = useT();
-  const { level, xp, stats, words, recordAnswer, sessionLog, setLastResult } = useApp();
+  const { level, xp, stats, words, recordAnswer, sessionLog, setLastResult, tagFilter, setTagFilter } = useApp();
   const maxXp = 10 * level ** 2;
   const minXp = 10 * (level - 1) ** 2;
   const xpPct  = maxXp > minXp ? Math.round(((xp - minXp) / (maxXp - minXp)) * 100) : 0;
 
-  // Build quiz once per mount
-  const [quiz] = useState(() => buildQuiz(words, reverse));
+  // All unique tags from the word list
+  const allTags = useMemo(() => {
+    const s = new Set<string>();
+    words.forEach(w => w.tags?.forEach(tg => s.add(tg)));
+    return [...s].sort();
+  }, [words]);
+
+  // Words filtered by active tag
+  const filteredWords = useMemo(() =>
+    tagFilter ? words.filter(w => w.tags?.includes(tagFilter)) : words,
+    [words, tagFilter]
+  );
+  const quizPool = filteredWords.length > 0 ? filteredWords : words;
+
+  // Build quiz once per mount — quizPool is stable for this mount since tagFilter lives in context
+  const [quiz] = useState(() => buildQuiz(quizPool, reverse));
 
   const { current, options, correctIdx } = quiz;
   const nebula = NEBULAE[boxOf(current.accuracy) - 1];
 
-  // Pad to 4 slots
   const slots = [...options, '', '', '', ''].slice(0, 4) as string[];
 
   const handleAnswer = (idx: number) => {
@@ -77,8 +90,8 @@ export function PlayScreen({ onNav, onAnswer, reverse, desktop }: PlayScreenProp
     ? Math.round((sessionCorrect / sessionLog.length) * 100)
     : 0;
 
-  const queryText  = reverse ? current.meaning : current.word;
-  const wordInfo   = (
+  const queryText = reverse ? current.meaning : current.word;
+  const wordInfo  = (
     <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginTop: desktop ? 18 : 14, flexWrap: 'wrap' }}>
       <NxTag>{t('ATT_SHORT')} {current.attempts}</NxTag>
       <NxTag green={current.accuracy >= 75} amber={current.accuracy >= 40 && current.accuracy < 75}
@@ -86,6 +99,26 @@ export function PlayScreen({ onNav, onAnswer, reverse, desktop }: PlayScreenProp
         {t('ACC_SHORT')} {current.accuracy}%
       </NxTag>
       <NxTag mag>{nebula.name.toUpperCase()} · N{nebula.n}</NxTag>
+    </div>
+  );
+
+  // Tag filter bar — shown when there are any tags in the word list
+  const tagFilterBar = allTags.length > 0 && (
+    <div style={{ display: 'flex', gap: 6, alignItems: 'center', overflowX: 'auto', padding: desktop ? '0 0 2px' : '0 16px 2px', scrollbarWidth: 'none' }}>
+      <span className="nx-overline" style={{ whiteSpace: 'nowrap', fontSize: 9 }}>TAG</span>
+      <span onClick={() => setTagFilter(null)} className="nx-clickable">
+        <NxTag cyan={tagFilter === null} style={{ whiteSpace: 'nowrap', cursor: 'pointer' }}>ALL</NxTag>
+      </span>
+      {allTags.map(tg => (
+        <span key={tg} onClick={() => setTagFilter(tg === tagFilter ? null : tg)} className="nx-clickable">
+          <NxTag cyan={tagFilter === tg} style={{ whiteSpace: 'nowrap', cursor: 'pointer' }}>{tg}</NxTag>
+        </span>
+      ))}
+      {tagFilter && (
+        <span className="nx-mono" style={{ fontSize: 10, color: 'var(--ink-mute)', whiteSpace: 'nowrap', marginLeft: 4 }}>
+          {filteredWords.length} 語
+        </span>
+      )}
     </div>
   );
 
@@ -108,8 +141,9 @@ export function PlayScreen({ onNav, onAnswer, reverse, desktop }: PlayScreenProp
     return (
       <NxDesktopShell active="home" onNav={onNav}
         title={`${t('PLAY')} · ${t('PLAY_SUB')}`}
-        sub={`${reverse ? 'JA → EN' : 'EN → JA'} · ${words.length} ${t('ENTRIES')}`}
+        sub={`${reverse ? 'JA → EN' : 'EN → JA'} · ${quizPool.length} ${t('ENTRIES')}${tagFilter ? ` · ${tagFilter}` : ''}`}
         right={<>
+          {tagFilterBar}
           <NxTag amber>▲ {stats.currentStreak} {t('STREAK')}</NxTag>
           <NxTag cyan>LV·{String(level).padStart(2, '0')}</NxTag>
           <div onClick={() => onNav('settings')} style={{ cursor: 'pointer' }}>
@@ -183,7 +217,7 @@ export function PlayScreen({ onNav, onAnswer, reverse, desktop }: PlayScreenProp
     <div style={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column' }}>
       <NxMobileHeader
         title={`${t('PLAY')} · ${t('PLAY_SUB')}`}
-        sub={`${reverse ? 'JA → EN' : 'EN → JA'} · ${words.length} ${t('ENTRIES')}`}
+        sub={`${reverse ? 'JA → EN' : 'EN → JA'} · ${quizPool.length} ${t('ENTRIES')}${tagFilter ? ` · ${tagFilter}` : ''}`}
         left={<div onClick={() => onNav('maps')} style={{ cursor: 'pointer' }}><NxIcon kind="back" size={18} color="var(--ink-soft)" /></div>}
         right={<div onClick={() => onNav('settings')} style={{ cursor: 'pointer' }}><NxIcon kind="settings" size={18} color="var(--ink-soft)" /></div>}
       />
@@ -192,6 +226,11 @@ export function PlayScreen({ onNav, onAnswer, reverse, desktop }: PlayScreenProp
         <NxProgress value={xpPct} style={{ flex: 1 }} />
         <span className="nx-mono">{xp}/{maxXp} XP</span>
       </div>
+      {allTags.length > 0 && (
+        <div style={{ padding: '6px 0 0' }}>
+          {tagFilterBar}
+        </div>
+      )}
       <div style={{ padding: '6px 16px', display: 'flex', justifyContent: 'space-between' }}>
         <span className="nx-mono">{t('SESSION')} {sessionLog.length} ANS</span>
         <span className="nx-mono" style={{ color: 'var(--amber)' }}>▲ {stats.currentStreak} {t('STREAK')}</span>

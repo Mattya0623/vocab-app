@@ -5,6 +5,7 @@ export interface Word {
   attempts: number;
   correct_answers: number;
   accuracy: number;
+  tags?: string[];
   userId?: string;
   createdAt?: Date;
 }

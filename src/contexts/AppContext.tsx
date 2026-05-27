@@ -21,11 +21,13 @@ interface AppContextValue {
   selectedMap: number;
   sessionLog: Array<{ word: string; correct: boolean }>;
   lastResult: LastResult | null;
+  tagFilter: string | null;
   setScreen: (s: Screen) => void;
   setPickedBox: (n: number) => void;
   setSessionSource: (s: 'home' | 'box') => void;
   setSelectedMap: (i: number) => void;
   setLastResult: (r: LastResult) => void;
+  setTagFilter: (t: string | null) => void;
   recordAnswer: (wordId: string, correct: boolean) => void;
   addWords: (newWords: Omit<Word, 'id'>[]) => void;
   deleteWords: (ids: string[]) => void;
@@ -53,6 +55,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [maxStreak, setMaxStreak]         = useState(0);
   const [sessionLog, setSessionLog]       = useState<Array<{ word: string; correct: boolean }>>([]);
   const [lastResult, setLastResult]       = useState<LastResult | null>(null);
+  const [tagFilter, setTagFilter]         = useState<string | null>(null);
 
   // Refs let callbacks access current state without stale closures
   const userRef        = useRef<User | null>(null);
@@ -244,8 +247,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     <AppContext.Provider value={{
       user, username, authReady,
       words, stats, level, xp, screen,
-      pickedBox, sessionSource, selectedMap, sessionLog, lastResult,
-      setScreen, setPickedBox, setSessionSource, setSelectedMap, setLastResult,
+      pickedBox, sessionSource, selectedMap, sessionLog, lastResult, tagFilter,
+      setScreen, setPickedBox, setSessionSource, setSelectedMap, setLastResult, setTagFilter,
       recordAnswer, addWords, deleteWords,
       go, onAnswer, onNext, onExitSession, onPick,
       logout, saveUsername,
