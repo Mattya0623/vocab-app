@@ -6,7 +6,7 @@ import { NxTabBar } from '@/components/layout/NxTabBar';
 import { NxDesktopShell } from '@/components/layout/NxDesktopShell';
 import { useT } from '@/contexts/I18nContext';
 import { useApp } from '@/contexts/AppContext';
-import { MAPS, stageUnlockLevel, stageStatus, mapUnlocked, mapProgress } from '@/data/maps';
+import { MAPS, stageUnlockLevel, stageStatus, mapUnlocked, mapProgress, mapUnlockWords } from '@/data/maps';
 import type { Screen } from '@/types';
 
 interface CosmosMapScreenProps {
@@ -64,9 +64,10 @@ function StageNode({ status, color, size = 56 }: { status: string; color: string
 
 export function CosmosMapScreen({ onNav, desktop }: CosmosMapScreenProps) {
   const t = useT();
-  const { level, selectedMap, setSelectedMap } = useApp();
+  const { level, words, selectedMap, setSelectedMap } = useApp();
+  const wordsCount = words.length;
   const map = MAPS[selectedMap];
-  const unlocked = mapUnlocked(selectedMap, level);
+  const unlocked = mapUnlocked(selectedMap, level, wordsCount);
   const progress = mapProgress(selectedMap, level);
 
   if (desktop) {
@@ -110,7 +111,18 @@ export function CosmosMapScreen({ onNav, desktop }: CosmosMapScreenProps) {
             <div style={{ position: 'absolute', left: 18, top: 16, right: 18, display: 'flex', alignItems: 'center', gap: 12, zIndex: 5 }}>
               <div className="nx-h glow" style={{ fontSize: 26, color: map.color, textShadow: `0 0 14px ${map.color}` }}>{map.name}</div>
               <div style={{ flex: 1 }} />
-              {!unlocked && <NxTag red>🔒 LOCKED · LV {stageUnlockLevel(selectedMap, 0)}</NxTag>}
+              {!unlocked && (() => {
+              const needWords = mapUnlockWords(selectedMap);
+              const needLevel = stageUnlockLevel(selectedMap, 0);
+              const missingWords = wordsCount < needWords;
+              const missingLevel = level < needLevel;
+              return (
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  {missingWords && <NxTag red>🔒 {needWords}語必要 (現在{wordsCount}語)</NxTag>}
+                  {missingLevel && <NxTag red>🔒 LV {needLevel}</NxTag>}
+                </div>
+              );
+            })()}
               <NxTag style={{ color: map.color, borderColor: map.color, background: map.color + '20' }}>{progress} / 8</NxTag>
             </div>
 
@@ -159,7 +171,7 @@ export function CosmosMapScreen({ onNav, desktop }: CosmosMapScreenProps) {
               <span className="nx-h glow" style={{ fontSize: 12, color: 'var(--cyan)' }}>{t('GALAXY_TOUR')}</span>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 8 }}>
                 {MAPS.map((m, i) => {
-                  const up = mapUnlocked(i, level);
+                  const up = mapUnlocked(i, level, wordsCount);
                   const p = mapProgress(i, level);
                   const on = i === selectedMap;
                   return (
@@ -225,11 +237,18 @@ export function CosmosMapScreen({ onNav, desktop }: CosmosMapScreenProps) {
           </div>
           <span className="nx-mono" style={{ fontSize: 11, color: map.color }}>{progress} / 8</span>
         </div>
-        {!unlocked && (
-          <div style={{ marginTop: 6 }}>
-            <NxTag red>🔒 LV {stageUnlockLevel(selectedMap, 0)} で解放</NxTag>
-          </div>
-        )}
+        {!unlocked && (() => {
+          const needWords = mapUnlockWords(selectedMap);
+          const needLevel = stageUnlockLevel(selectedMap, 0);
+          const missingWords = wordsCount < needWords;
+          const missingLevel = level < needLevel;
+          return (
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
+              {missingWords && <NxTag red>🔒 {needWords}語必要 ({wordsCount}/{needWords})</NxTag>}
+              {missingLevel && <NxTag red>🔒 LV {needLevel} 必要</NxTag>}
+            </div>
+          );
+        })()}
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '8px 16px 12px', position: 'relative' }}>
@@ -284,7 +303,7 @@ export function CosmosMapScreen({ onNav, desktop }: CosmosMapScreenProps) {
         display: 'flex', gap: 6, justifyContent: 'center',
       }}>
         {MAPS.map((m, i) => {
-          const up = mapUnlocked(i, level);
+          const up = mapUnlocked(i, level, wordsCount);
           const on = i === selectedMap;
           return (
             <div key={i} onClick={() => setSelectedMap(i)} className="nx-clickable"

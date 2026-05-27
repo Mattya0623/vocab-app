@@ -108,6 +108,10 @@ export function stageUnlockLevel(mapIdx: number, stageIdx: number): number {
   return (mapIdx * 8 + stageIdx + 1) * 5;
 }
 
+export function mapUnlockWords(mapIdx: number): number {
+  return mapIdx * 250;
+}
+
 export type StageStatus = 'completed' | 'current' | 'locked';
 
 export function stageStatus(mapIdx: number, stageIdx: number, level: number): StageStatus {
@@ -117,8 +121,8 @@ export function stageStatus(mapIdx: number, stageIdx: number, level: number): St
   return 'completed';
 }
 
-export function mapUnlocked(mapIdx: number, level: number): boolean {
-  return level >= stageUnlockLevel(mapIdx, 0);
+export function mapUnlocked(mapIdx: number, level: number, wordsCount: number): boolean {
+  return level >= stageUnlockLevel(mapIdx, 0) && wordsCount >= mapUnlockWords(mapIdx);
 }
 
 export function mapProgress(mapIdx: number, level: number): number {
