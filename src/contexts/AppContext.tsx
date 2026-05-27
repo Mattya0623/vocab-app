@@ -36,6 +36,9 @@ interface AppContextValue {
   setSelectedMap: (i: number) => void;
   setLastResult: (r: LastResult) => void;
   setTagFilter: (t: string | null) => void;
+  showResult: boolean;
+  setShowResult: (v: boolean) => void;
+  quizKey: number;
   recordAnswer: (wordId: string, correct: boolean) => void;
   addWords: (newWords: Omit<Word, 'id'>[]) => void;
   deleteWords: (ids: string[]) => void;
@@ -64,6 +67,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [sessionLog, setSessionLog]       = useState<Array<{ word: string; correct: boolean }>>([]);
   const [lastResult, setLastResult]       = useState<LastResult | null>(null);
   const [tagFilter, setTagFilter]         = useState<string | null>(null);
+  const [showResult, setShowResult]       = useState(true);
+  const [quizKey, setQuizKey]             = useState(0);
+  const showResultRef                     = useRef(true);
   const [timerTotal, setTimerTotal]       = useState(300);
   const [timerRemaining, setTimerRemaining] = useState(300);
   const [timerRunning, setTimerRunning]   = useState(false);
@@ -78,9 +84,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const dbRef          = useRef<Firestore | undefined>(undefined);
   const wordsUnsubRef  = useRef<(() => void) | undefined>(undefined);
 
-  useEffect(() => { userRef.current      = user; },      [user]);
-  useEffect(() => { wordsRef.current     = words; },     [words]);
-  useEffect(() => { maxStreakRef.current = maxStreak; }, [maxStreak]);
+  useEffect(() => { userRef.current        = user; },       [user]);
+  useEffect(() => { wordsRef.current      = words; },      [words]);
+  useEffect(() => { maxStreakRef.current  = maxStreak; },  [maxStreak]);
+  useEffect(() => { showResultRef.current = showResult; }, [showResult]);
 
   // Persist maxStreak to Firestore whenever it increases
   useEffect(() => {
@@ -313,7 +320,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setScreen(s);
   }, []);
 
-  const onAnswer      = useCallback((ok: boolean)  => { setScreen(ok ? 'result_ok' : 'result_ng'); }, []);
+  const onAnswer = useCallback((ok: boolean) => {
+    if (showResultRef.current) {
+      setScreen(ok ? 'result_ok' : 'result_ng');
+    } else {
+      setQuizKey(k => k + 1);
+    }
+  }, []);
   const onNext        = useCallback(()              => { setScreen(sessionSource === 'box' ? 'boxquiz' : 'home'); }, [sessionSource]);
   const onExitSession = useCallback(()              => { setSessionSource('home'); setScreen('boxes'); }, []);
   const onPick        = useCallback((n: number)     => { setPickedBox(n); setSessionSource('box'); setScreen('boxquiz'); }, []);
@@ -323,6 +336,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       user, username, authReady,
       words, stats, level, xp, screen,
       pickedBox, sessionSource, selectedMap, sessionLog, lastResult, tagFilter,
+      showResult, setShowResult, quizKey,
       timerTotal, timerRemaining, timerRunning, timerDone,
       timerStart, timerPause, timerReset, timerSet,
       setScreen, setPickedBox, setSessionSource, setSelectedMap, setLastResult, setTagFilter,

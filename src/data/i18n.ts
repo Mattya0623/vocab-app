@@ -148,7 +148,9 @@ export const TR: TranslationMap = {
 
   SETTINGS_HEAD:   { en: 'SETTINGS · preferences', ja: 'SETTINGS · 設定', zh: '设置 · 偏好', ko: '설정 · 환경' },
   STUDY_SECTION:   { en: 'STUDY',            ja: '学習',           zh: '学习',        ko: '학습' },
-  REVERSE_LABEL:   { en: 'Reverse mode',     ja: 'リバースモード',  zh: '反向模式',    ko: '리버스 모드' },
+  SHOW_RESULT_LABEL: { en: 'Show result screen',  ja: '回答結果を表示',    zh: '显示答题结果',   ko: '결과 화면 표시' },
+  SHOW_RESULT_DESC:  { en: 'When OFF, skip the correct/incorrect screen and jump straight to the next question.', ja: 'OFFにすると、正解・不正解の画面をスキップして次の問題に自動で進みます。', zh: '关闭后跳过对错界面，直接进入下一题。', ko: '끄면 정오답 화면을 건너뛰고 바로 다음 문제로 넘어갑니다.' },
+  REVERSE_LABEL:  { en: 'Reverse mode',     ja: 'リバースモード',  zh: '反向模式',    ko: '리버스 모드' },
   REVERSE_DESC:    { en: 'Show meaning, pick the word (instead of word → meaning).',
                      ja: '「意味」を出題して、単語を選択する形式に切り替えます。',
                      zh: '出题显示含义，由你选择对应的单词。',

@@ -15,7 +15,26 @@ interface SettingsScreenProps {
 export function SettingsScreen({ onNav, desktop }: SettingsScreenProps) {
   const t = useT();
   const { lang, reverse, setLang, setReverse } = useI18n();
-  const { user, username, logout, words, deleteWords } = useApp();
+  const { user, username, logout, words, deleteWords, showResult, setShowResult } = useApp();
+
+  const toggle = (on: boolean, onClick: () => void, color = 'var(--cyan)') => (
+    <div onClick={onClick} style={{
+      width: 50, height: 28, borderRadius: 14,
+      background: on ? color : 'rgba(8,10,28,0.7)',
+      border: `1px solid ${on ? color : 'var(--line)'}`,
+      boxShadow: on ? `0 0 16px ${color}` : 'none',
+      position: 'relative', cursor: 'pointer', flexShrink: 0,
+      transition: 'all 0.2s',
+    }}>
+      <div style={{
+        position: 'absolute', top: 2, left: on ? 24 : 2,
+        width: 22, height: 22, borderRadius: '50%',
+        background: 'var(--bg-0)',
+        boxShadow: '0 0 8px rgba(0,0,0,0.5)',
+        transition: 'left 0.2s',
+      }} />
+    </div>
+  );
 
   const studySection = (
     <div>
@@ -28,23 +47,7 @@ export function SettingsScreen({ onNav, desktop }: SettingsScreenProps) {
               {t('REVERSE_DESC')}
             </div>
           </div>
-          <div onClick={() => setReverse(!reverse)}
-            style={{
-              width: 50, height: 28, borderRadius: 14,
-              background: reverse ? 'var(--mag)' : 'rgba(8,10,28,0.7)',
-              border: '1px solid ' + (reverse ? 'var(--mag)' : 'var(--line)'),
-              boxShadow: reverse ? '0 0 16px var(--mag)' : 'none',
-              position: 'relative', cursor: 'pointer', flexShrink: 0,
-              transition: 'all 0.2s',
-            }}>
-            <div style={{
-              position: 'absolute', top: 2, left: reverse ? 24 : 2,
-              width: 22, height: 22, borderRadius: '50%',
-              background: 'var(--bg-0)',
-              boxShadow: '0 0 8px rgba(0,0,0,0.5)',
-              transition: 'left 0.2s',
-            }} />
-          </div>
+          {toggle(reverse, () => setReverse(!reverse), 'var(--mag)')}
         </div>
         <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px',
           background: 'rgba(8,10,28,0.5)', borderRadius: 8, border: '1px solid var(--line)' }}>
@@ -54,6 +57,15 @@ export function SettingsScreen({ onNav, desktop }: SettingsScreenProps) {
           <span className="nx-mono" style={{ marginLeft: 'auto', fontSize: 10 }}>
             {reverse ? t('REVERSE_ARROW_ON') : t('REVERSE_ARROW')}
           </span>
+        </div>
+        <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--line)', display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div className="nx-h" style={{ fontSize: 14, color: 'var(--cyan)' }}>{t('SHOW_RESULT_LABEL')}</div>
+            <div className="nx-mono" style={{ marginTop: 4, color: 'var(--ink-soft)', fontSize: 11, lineHeight: 1.5 }}>
+              {t('SHOW_RESULT_DESC')}
+            </div>
+          </div>
+          {toggle(showResult, () => setShowResult(!showResult))}
         </div>
       </NxCard>
     </div>

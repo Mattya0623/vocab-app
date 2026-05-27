@@ -31,7 +31,7 @@ function useIsDesktop() {
 }
 
 export default function Home() {
-  const { screen, words, go, onAnswer, onNext, onExitSession, onPick, pickedBox, authReady, setPickedBox } = useApp();
+  const { screen, words, go, onAnswer, onNext, onExitSession, onPick, pickedBox, authReady, setPickedBox, quizKey } = useApp();
   const { reverse } = useI18n();
   const desktop = useIsDesktop();
 
@@ -53,7 +53,7 @@ export default function Home() {
       case 'timer':
         return <TimerScreen onNav={nav} desktop={desktop} />;
       case 'home':
-        return <PlayScreen onNav={nav} onAnswer={onAnswer} reverse={reverse} desktop={desktop} />;
+        return <PlayScreen key={quizKey} onNav={nav} onAnswer={onAnswer} reverse={reverse} desktop={desktop} />;
       case 'result_ok':
         return <ResultScreen ok onNav={nav} onNext={onNext} onExit={onExitSession} />;
       case 'result_ng':
@@ -61,7 +61,7 @@ export default function Home() {
       case 'boxes':
         return <NebulaeScreen onNav={nav} onPick={onPick} onSelect={setPickedBox} selected={pickedBox} desktop={desktop} />;
       case 'boxquiz':
-        return <BoxQuizScreen onNav={nav} onAnswer={onAnswer} onExit={onExitSession} box={pickedBox} reverse={reverse} />;
+        return <BoxQuizScreen key={quizKey} onNav={nav} onAnswer={onAnswer} onExit={onExitSession} box={pickedBox} reverse={reverse} />;
       case 'list':
         return <CodexScreen onNav={nav} desktop={desktop} />;
       case 'import':
@@ -75,7 +75,7 @@ export default function Home() {
       case 'empty':
         return <EmptyScreen onNav={nav} desktop={desktop} />;
       default:
-        return <PlayScreen onNav={nav} onAnswer={onAnswer} reverse={reverse} desktop={desktop} />;
+        return <PlayScreen key={quizKey} onNav={nav} onAnswer={onAnswer} reverse={reverse} desktop={desktop} />;
     }
   };
 
