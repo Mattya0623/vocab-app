@@ -203,7 +203,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [words, maxStreak, currentStreak]);
 
   const xp    = stats.totalCorrect;
-  const level = useMemo(() => Math.max(1, Math.floor(Math.sqrt(xp / 10)) + 1), [xp]);
+  const level = useMemo(() => Math.floor(xp / 50) + 1, [xp]);
 
   // ── Word mutations ─────────────────────────────────────────────────────
   const recordAnswer = useCallback((wordId: string, correct: boolean) => {

@@ -1,19 +1,19 @@
-// XP = total correct answers. Required XP for level: 10 * LV^2
-// So level from XP: LV = floor(sqrt(XP / 10)) + 1
+// XP = total correct answers. Each level requires exactly 50 XP.
+// Level = floor(XP / 50) + 1
 
 export const LEVEL_COLORS = ['#5ce8ff', '#ff5ce0', '#a079ff', '#a6ff5c', '#ffd25c', '#ff5c7a'];
 export const LEVEL_TIER_NAMES = ['SPECTRA', 'NOVA', 'PULSAR', 'QUASAR', 'STELLAR', 'NEBULA'];
 
 export function xpToLevel(xp: number): number {
-  return Math.max(1, Math.floor(Math.sqrt(xp / 10)) + 1);
+  return Math.floor(xp / 50) + 1;
 }
 
 export function levelToMinXp(lv: number): number {
-  return 10 * (lv - 1) ** 2;
+  return (lv - 1) * 50;
 }
 
 export function levelToMaxXp(lv: number): number {
-  return 10 * lv ** 2;
+  return lv * 50;
 }
 
 export function levelColor(lv: number): string {
