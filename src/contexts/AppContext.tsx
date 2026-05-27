@@ -22,6 +22,14 @@ interface AppContextValue {
   sessionLog: Array<{ word: string; correct: boolean }>;
   lastResult: LastResult | null;
   tagFilter: string | null;
+  timerTotal: number;
+  timerRemaining: number;
+  timerRunning: boolean;
+  timerDone: boolean;
+  timerStart: () => void;
+  timerPause: () => void;
+  timerReset: () => void;
+  timerSet: (secs: number) => void;
   setScreen: (s: Screen) => void;
   setPickedBox: (n: number) => void;
   setSessionSource: (s: 'home' | 'box') => void;
@@ -56,6 +64,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [sessionLog, setSessionLog]       = useState<Array<{ word: string; correct: boolean }>>([]);
   const [lastResult, setLastResult]       = useState<LastResult | null>(null);
   const [tagFilter, setTagFilter]         = useState<string | null>(null);
+  const [timerTotal, setTimerTotal]       = useState(300);
+  const [timerRemaining, setTimerRemaining] = useState(300);
+  const [timerRunning, setTimerRunning]   = useState(false);
+  const [timerDone, setTimerDone]         = useState(false);
+  const timerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const timerTotalRef    = useRef(300);
 
   // Refs let callbacks access current state without stale closures
   const userRef        = useRef<User | null>(null);
@@ -249,6 +263,51 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // ── Timer ──────────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!timerRunning) {
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+        timerIntervalRef.current = null;
+      }
+      return;
+    }
+    timerIntervalRef.current = setInterval(() => {
+      setTimerRemaining(prev => {
+        if (prev <= 1) {
+          clearInterval(timerIntervalRef.current!);
+          timerIntervalRef.current = null;
+          setTimerRunning(false);
+          setTimerDone(true);
+          import('@/lib/audio').then(({ playChime }) => playChime());
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => {
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+        timerIntervalRef.current = null;
+      }
+    };
+  }, [timerRunning]);
+
+  const timerStart = useCallback(() => setTimerRunning(true), []);
+  const timerPause = useCallback(() => setTimerRunning(false), []);
+  const timerReset = useCallback(() => {
+    setTimerRunning(false);
+    setTimerDone(false);
+    setTimerRemaining(timerTotalRef.current);
+  }, []);
+  const timerSet = useCallback((secs: number) => {
+    setTimerRunning(false);
+    setTimerDone(false);
+    timerTotalRef.current = secs;
+    setTimerTotal(secs);
+    setTimerRemaining(secs);
+  }, []);
+
   const go = useCallback((s: Screen) => {
     if (s !== 'boxquiz' && s !== 'result_ok' && s !== 'result_ng') setSessionSource('home');
     setScreen(s);
@@ -264,6 +323,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       user, username, authReady,
       words, stats, level, xp, screen,
       pickedBox, sessionSource, selectedMap, sessionLog, lastResult, tagFilter,
+      timerTotal, timerRemaining, timerRunning, timerDone,
+      timerStart, timerPause, timerReset, timerSet,
       setScreen, setPickedBox, setSessionSource, setSelectedMap, setLastResult, setTagFilter,
       recordAnswer, addWords, deleteWords,
       go, onAnswer, onNext, onExitSession, onPick,
