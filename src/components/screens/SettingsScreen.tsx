@@ -15,7 +15,7 @@ interface SettingsScreenProps {
 export function SettingsScreen({ onNav, desktop }: SettingsScreenProps) {
   const t = useT();
   const { lang, reverse, setLang, setReverse } = useI18n();
-  const { user, logout } = useApp();
+  const { user, username, logout } = useApp();
 
   const studySection = (
     <div>
@@ -98,9 +98,9 @@ export function SettingsScreen({ onNav, desktop }: SettingsScreenProps) {
             background: 'linear-gradient(135deg, var(--cyan), var(--mag))',
             display: 'grid', placeItems: 'center',
             color: 'var(--bg-0)', fontFamily: 'var(--display)', fontWeight: 900,
-          }}>{user?.displayName?.[0]?.toUpperCase() ?? 'G'}</div>
+          }}>{(username || user?.displayName || 'G')[0].toUpperCase()}</div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 14 }}>{user?.displayName ?? 'ゲスト'}</div>
+            <div style={{ fontSize: 14 }}>{username || user?.displayName || 'ゲスト'}</div>
             <div className="nx-overline">{user?.email ?? 'guest mode'}</div>
           </div>
         </div>

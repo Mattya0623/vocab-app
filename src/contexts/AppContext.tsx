@@ -1,15 +1,15 @@
 'use client';
 import {
-  createContext, useContext, useState, useCallback, useMemo, useEffect,
+  createContext, useContext, useState, useCallback, useMemo, useEffect, useRef,
   type ReactNode,
 } from 'react';
 import type { User } from 'firebase/auth';
-import { SAMPLE_WORDS } from '@/data/words';
-import { NEBULAE, boxOf } from '@/data/nebulae';
+import type { Firestore } from 'firebase/firestore';
 import type { Word, UserStats, Screen } from '@/types';
 
 interface AppContextValue {
   user: User | null;
+  username: string;
   authReady: boolean;
   words: Word[];
   stats: UserStats;
@@ -32,57 +32,132 @@ interface AppContextValue {
   onExitSession: () => void;
   onPick: (n: number) => void;
   logout: () => Promise<void>;
+  saveUsername: (name: string) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [user, setUser]               = useState<User | null>(null);
-  const [authReady, setAuthReady]     = useState(false);
-  const [words, setWords]             = useState<Word[]>(SAMPLE_WORDS);
-  const [screen, setScreen]           = useState<Screen>('login');
-  const [pickedBox, setPickedBox]     = useState(2);
+  const [user, setUser]                   = useState<User | null>(null);
+  const [username, setUsername]           = useState('');
+  const [authReady, setAuthReady]         = useState(false);
+  const [words, setWords]                 = useState<Word[]>([]);
+  const [screen, setScreen]               = useState<Screen>('login');
+  const [pickedBox, setPickedBox]         = useState(2);
   const [sessionSource, setSessionSource] = useState<'home' | 'box'>('home');
-  const [selectedMap, setSelectedMap] = useState(0);
+  const [selectedMap, setSelectedMap]     = useState(0);
   const [currentStreak, setCurrentStreak] = useState(0);
-  const [maxStreak, setMaxStreak]     = useState(0);
+  const [maxStreak, setMaxStreak]         = useState(0);
 
-  // Subscribe to Firebase auth state — keeps session across page reloads
+  // Refs let callbacks access current state without stale closures
+  const userRef        = useRef<User | null>(null);
+  const wordsRef       = useRef<Word[]>([]);
+  const dbRef          = useRef<Firestore | undefined>(undefined);
+  const wordsUnsubRef  = useRef<(() => void) | undefined>(undefined);
+
+  useEffect(() => { userRef.current  = user; },  [user]);
+  useEffect(() => { wordsRef.current = words; }, [words]);
+
+  // ── Firebase auth subscription ──────────────────────────────────────────
   useEffect(() => {
-    let unsub: (() => void) | undefined;
+    let authUnsub: (() => void) | undefined;
+
     (async () => {
-      const { auth, firebaseReady } = await import('@/lib/firebase');
-      if (!firebaseReady || !auth) {
-        setAuthReady(true); // no Firebase — skip to guest mode
+      const { auth, db, firebaseReady } = await import('@/lib/firebase');
+
+      if (!firebaseReady || !auth || !db) {
+        setAuthReady(true);  // no Firebase config → app runs in guest-local mode
         return;
       }
+
+      dbRef.current = db;
+
       const { onAuthStateChanged, getRedirectResult } = await import('firebase/auth');
+      const { getProfile, subscribeWords }            = await import('@/lib/firestore');
 
-      // Resolve any pending mobile redirect login
-      getRedirectResult(auth).catch(() => {/* ignore stale redirect errors */});
+      // Resolve any pending mobile redirect login before subscribing
+      getRedirectResult(auth).catch(() => {});
 
-      unsub = onAuthStateChanged(auth, (firebaseUser) => {
+      authUnsub = onAuthStateChanged(auth, async (firebaseUser) => {
+        // Always clean up previous words subscription on auth change
+        wordsUnsubRef.current?.();
+        wordsUnsubRef.current = undefined;
+
         setUser(firebaseUser);
         setAuthReady(true);
-        // Auto-advance past login when already authenticated
-        if (firebaseUser) {
+
+        if (!firebaseUser) {
+          setWords([]);
+          setUsername('');
+          setScreen('login');
+          return;
+        }
+
+        // Anonymous / guest — local state only, skip Firestore
+        if (firebaseUser.isAnonymous) {
+          setScreen(s => s === 'login' ? 'maps' : s);
+          return;
+        }
+
+        // Google user — load profile from Firestore
+        try {
+          const profile = await getProfile(db, firebaseUser.uid);
+
+          if (!profile) {
+            // First-time login → username setup
+            setScreen('setup');
+            return;
+          }
+
+          setUsername(profile.username);
+          setScreen(s => (s === 'login' || s === 'setup') ? 'maps' : s);
+          wordsUnsubRef.current = subscribeWords(db, firebaseUser.uid, setWords);
+        } catch (e) {
+          // Firestore unavailable (rules not set, network issue) → graceful fallback
+          console.error('Firestore profile load failed:', e);
           setScreen(s => s === 'login' ? 'maps' : s);
         }
       });
     })();
-    return () => unsub?.();
+
+    return () => {
+      authUnsub?.();
+      wordsUnsubRef.current?.();
+    };
+  }, []);
+
+  // Called from SetupScreen after username is submitted
+  const saveUsername = useCallback(async (name: string) => {
+    const u  = userRef.current;
+    const db = dbRef.current;
+
+    if (u && !u.isAnonymous && db) {
+      const { saveProfile, subscribeWords } = await import('@/lib/firestore');
+      await saveProfile(db, u.uid, name);
+      wordsUnsubRef.current?.();
+      wordsUnsubRef.current = subscribeWords(db, u.uid, setWords);
+    }
+
+    setUsername(name);
+    setScreen('maps');
   }, []);
 
   const logout = useCallback(async () => {
+    wordsUnsubRef.current?.();
+    wordsUnsubRef.current = undefined;
+
     const { auth, firebaseReady } = await import('@/lib/firebase');
     if (firebaseReady && auth) {
       const { signOut } = await import('firebase/auth');
       await signOut(auth);
     }
     setUser(null);
+    setWords([]);
+    setUsername('');
     setScreen('login');
   }, []);
 
+  // ── Stats / XP / Level ─────────────────────────────────────────────────
   const stats = useMemo<UserStats>(() => {
     const totalAttempts = words.reduce((s, w) => s + w.attempts, 0);
     const totalCorrect  = words.reduce((s, w) => s + w.correct_answers, 0);
@@ -92,30 +167,63 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const xp    = stats.totalCorrect;
   const level = useMemo(() => Math.max(1, Math.floor(Math.sqrt(xp / 10)) + 1), [xp]);
 
+  // ── Word mutations ─────────────────────────────────────────────────────
   const recordAnswer = useCallback((wordId: string, correct: boolean) => {
-    setWords(prev => prev.map(w => {
-      if (w.id !== wordId) return w;
-      const attempts        = w.attempts + 1;
-      const correct_answers = w.correct_answers + (correct ? 1 : 0);
-      const accuracy        = Math.round((correct_answers / attempts) * 100);
-      return { ...w, attempts, correct_answers, accuracy };
-    }));
     if (correct) {
       setCurrentStreak(s => { const n = s + 1; setMaxStreak(m => Math.max(m, n)); return n; });
     } else {
       setCurrentStreak(0);
     }
+
+    const u  = userRef.current;
+    const db = dbRef.current;
+
+    if (u && !u.isAnonymous && db) {
+      const word = wordsRef.current.find(w => w.id === wordId);
+      if (!word) return;
+      const attempts        = word.attempts + 1;
+      const correct_answers = word.correct_answers + (correct ? 1 : 0);
+      const accuracy        = Math.round((correct_answers / attempts) * 100);
+      // Fire-and-forget — onSnapshot will update local state
+      import('@/lib/firestore').then(({ upsertWord }) =>
+        upsertWord(db, u.uid, { ...word, attempts, correct_answers, accuracy }).catch(console.error)
+      );
+    } else {
+      setWords(prev => prev.map(w => {
+        if (w.id !== wordId) return w;
+        const attempts        = w.attempts + 1;
+        const correct_answers = w.correct_answers + (correct ? 1 : 0);
+        const accuracy        = Math.round((correct_answers / attempts) * 100);
+        return { ...w, attempts, correct_answers, accuracy };
+      }));
+    }
   }, []);
 
   const addWords = useCallback((newWords: Omit<Word, 'id'>[]) => {
-    setWords(prev => [
-      ...prev,
-      ...newWords.map((w, i) => ({ ...w, id: `${Date.now()}-${i}` })),
-    ]);
+    const withIds = newWords.map((w, i) => ({ ...w, id: `${Date.now()}-${i}` }));
+    const u  = userRef.current;
+    const db = dbRef.current;
+
+    if (u && !u.isAnonymous && db) {
+      import('@/lib/firestore').then(({ upsertWord }) =>
+        withIds.forEach(w => upsertWord(db, u.uid, w).catch(console.error))
+      );
+    } else {
+      setWords(prev => [...prev, ...withIds]);
+    }
   }, []);
 
   const deleteWords = useCallback((ids: string[]) => {
-    setWords(prev => prev.filter(w => !ids.includes(w.id)));
+    const u  = userRef.current;
+    const db = dbRef.current;
+
+    if (u && !u.isAnonymous && db) {
+      import('@/lib/firestore').then(({ removeWords }) =>
+        removeWords(db, u.uid, ids).catch(console.error)
+      );
+    } else {
+      setWords(prev => prev.filter(w => !ids.includes(w.id)));
+    }
   }, []);
 
   const go = useCallback((s: Screen) => {
@@ -123,33 +231,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setScreen(s);
   }, []);
 
-  const onAnswer = useCallback((ok: boolean) => {
-    setScreen(ok ? 'result_ok' : 'result_ng');
-  }, []);
-
-  const onNext = useCallback(() => {
-    setScreen(sessionSource === 'box' ? 'boxquiz' : 'home');
-  }, [sessionSource]);
-
-  const onExitSession = useCallback(() => {
-    setSessionSource('home');
-    setScreen('boxes');
-  }, []);
-
-  const onPick = useCallback((n: number) => {
-    setPickedBox(n);
-    setSessionSource('box');
-    setScreen('boxquiz');
-  }, []);
+  const onAnswer      = useCallback((ok: boolean)  => { setScreen(ok ? 'result_ok' : 'result_ng'); }, []);
+  const onNext        = useCallback(()              => { setScreen(sessionSource === 'box' ? 'boxquiz' : 'home'); }, [sessionSource]);
+  const onExitSession = useCallback(()              => { setSessionSource('home'); setScreen('boxes'); }, []);
+  const onPick        = useCallback((n: number)     => { setPickedBox(n); setSessionSource('box'); setScreen('boxquiz'); }, []);
 
   return (
     <AppContext.Provider value={{
-      user, authReady,
+      user, username, authReady,
       words, stats, level, xp, screen,
       pickedBox, sessionSource, selectedMap,
       setScreen, setPickedBox, setSessionSource, setSelectedMap,
       recordAnswer, addWords, deleteWords,
-      go, onAnswer, onNext, onExitSession, onPick, logout,
+      go, onAnswer, onNext, onExitSession, onPick,
+      logout, saveUsername,
     }}>
       {children}
     </AppContext.Provider>

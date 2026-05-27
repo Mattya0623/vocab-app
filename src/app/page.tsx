@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useApp } from '@/contexts/AppContext';
 import { useI18n } from '@/contexts/I18nContext';
 import { LoginScreen } from '@/components/screens/LoginScreen';
+import { SetupScreen } from '@/components/screens/SetupScreen';
 import { EmptyScreen } from '@/components/screens/EmptyScreen';
 import { PlayScreen } from '@/components/screens/PlayScreen';
 import { ResultScreen } from '@/components/screens/ResultScreen';
@@ -36,9 +37,8 @@ export default function Home() {
   const isEmpty = words.length === 0;
 
   const renderScreen = () => {
-    if (screen === 'login') {
-      return <LoginScreen onNav={nav} desktop={desktop} />;
-    }
+    if (screen === 'login') return <LoginScreen onNav={nav} desktop={desktop} />;
+    if (screen === 'setup') return <SetupScreen />;
     if (isEmpty && screen !== 'import' && screen !== 'settings') {
       return <EmptyScreen onNav={nav} desktop={desktop} />;
     }

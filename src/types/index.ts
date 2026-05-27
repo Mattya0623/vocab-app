@@ -41,7 +41,7 @@ export interface CosmosMap {
 
 export type Lang = 'ja' | 'en' | 'zh' | 'ko';
 export type Screen =
-  | 'login' | 'empty' | 'maps' | 'home'
+  | 'login' | 'setup' | 'empty' | 'maps' | 'home'
   | 'result_ok' | 'result_ng' | 'boxes' | 'boxquiz'
   | 'list' | 'import' | 'stats' | 'settings';
 

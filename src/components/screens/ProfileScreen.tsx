@@ -23,7 +23,7 @@ const BADGES = [
 
 export function ProfileScreen({ onNav, desktop }: ProfileScreenProps) {
   const t = useT();
-  const { level, xp, stats } = useApp();
+  const { level, xp, stats, username } = useApp();
   const c = levelColor(level);
   const tierName = levelTierName(level);
   const asc = levelAscension(level);
@@ -36,7 +36,12 @@ export function ProfileScreen({ onNav, desktop }: ProfileScreenProps) {
       <div style={{ display: desktop ? 'contents' : 'flex', alignItems: 'center', gap: 14 }}>
         <LevelAvatar lv={level} size={size} />
         <div style={{ flex: 1, minWidth: 0, ...(desktop ? {} : {}) }}>
-          <div className="nx-h mag-glow" style={{ fontSize, color: c, textShadow: `0 0 ${desktop ? 12 : 10}px ${c}` }}>{t('RANK_APPRENTICE')}</div>
+          {username && (
+            <div className="nx-h" style={{ fontSize: fontSize + 2, color: 'var(--ink)', lineHeight: 1.1, marginBottom: 2 }}>
+              {username}
+            </div>
+          )}
+          <div className="nx-h mag-glow" style={{ fontSize: fontSize - 4, color: c, textShadow: `0 0 ${desktop ? 12 : 10}px ${c}` }}>{t('RANK_APPRENTICE')}</div>
           <div className="nx-overline" style={{ marginBottom: 8 }}>
             <span style={{ color: c }}>{tierName}</span> · LV·{String(level).padStart(2, '0')}
             {asc > 0 && <> · <span style={{ color: c }}>★ ASCENSION {asc}</span></>}

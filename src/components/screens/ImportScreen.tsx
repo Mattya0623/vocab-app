@@ -8,11 +8,7 @@ import { useT } from '@/contexts/I18nContext';
 import { useApp } from '@/contexts/AppContext';
 import type { Screen, Word } from '@/types';
 
-const DEFAULT_CSV = `apple, りんご
-meticulous, 几帳面な
-ephemeral, 儚い・短命の
-gregarious, 社交的な
-serendipity, 偶然の幸運`;
+const DEFAULT_CSV = '';
 
 function parseCSV(text: string): Omit<Word, 'id'>[] {
   return text.split('\n')
