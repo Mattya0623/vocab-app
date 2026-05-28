@@ -28,7 +28,7 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 function buildQueue(tagWords: Word[]): Word[] {
-  return [...shuffle(tagWords), ...shuffle(tagWords), ...shuffle(tagWords)];
+  return shuffle(tagWords);
 }
 
 function buildChoices(current: Word, allWords: Word[], reverse: boolean): string[] {
@@ -55,7 +55,6 @@ export function MasterModeScreen({ onNav, desktop }: MasterModeScreenProps) {
   const [idx,         setIdx]         = useState(0);
   const [choices,     setChoices]     = useState<string[]>([]);
   const [elapsed,     setElapsed]     = useState(0);
-  const [mistakes,    setMistakes]    = useState(0);
   const [failReason,  setFailReason]  = useState('');
 
   const startTimeRef    = useRef(0);
@@ -87,7 +86,6 @@ export function MasterModeScreen({ onNav, desktop }: MasterModeScreenProps) {
     setIdx(0);
     setChoices(c);
     setElapsed(0);
-    setMistakes(0);
     startTimeRef.current = Date.now();
     setPhase('quiz');
   };
@@ -99,23 +97,8 @@ export function MasterModeScreen({ onNav, desktop }: MasterModeScreenProps) {
     const isCorrect = chosen === correct;
 
     if (!isCorrect) {
-      const newMistakes = mistakes + 1;
-      setMistakes(newMistakes);
-      if (newMistakes >= 3) {
-        setFailReason('wrong');
-        setPhase('fail');
-        return;
-      }
-      // Still alive — advance to next question
-      const nextIdx = idx + 1;
-      if (nextIdx >= queue.length) {
-        // Finished all questions but had too many mistakes — shouldn't reach here (caught above)
-        setFailReason('wrong');
-        setPhase('fail');
-        return;
-      }
-      setIdx(nextIdx);
-      setChoices(buildChoices(queue[nextIdx], words, reverse));
+      setFailReason('wrong');
+      setPhase('fail');
       return;
     }
 
@@ -123,8 +106,8 @@ export function MasterModeScreen({ onNav, desktop }: MasterModeScreenProps) {
     if (nextIdx >= queue.length) {
       // All questions done — check time
       const totalMs     = Date.now() - startTimeRef.current;
-      const n           = queue.length / 3;
-      const timeLimitMs = n * 4000;
+      const n           = queue.length;
+      const timeLimitMs = n * 3000;
       if (totalMs > timeLimitMs) {
         setElapsed(totalMs);
         setFailReason('slow');
@@ -158,7 +141,7 @@ export function MasterModeScreen({ onNav, desktop }: MasterModeScreenProps) {
         const tagWords  = words.filter(w => w.tags?.includes(tag));
         const n         = tagWords.length;
         const mastered  = masteredTags.includes(tag);
-        const timeLimitS = (n * 4).toFixed(0);
+        const timeLimitS = (n * 3).toFixed(0);
         const canStart  = n >= 2;
         const c         = mastered ? GOLD : 'var(--cyan)';
         return (
@@ -181,7 +164,7 @@ export function MasterModeScreen({ onNav, desktop }: MasterModeScreenProps) {
                 {tag}
               </div>
               <div className="nx-overline" style={{ marginTop: 2, fontSize: 9 }}>
-                {n}語 · 3×{n}問 · ミス3回まで · {timeLimitS}s以内
+                {n}語 · {n}問 · ミス不可 · {timeLimitS}s以内
               </div>
             </div>
             {mastered ? (
@@ -197,8 +180,8 @@ export function MasterModeScreen({ onNav, desktop }: MasterModeScreenProps) {
 
   // ── QUIZ PHASE ──────────────────────────────────────────────────────────
   const current       = queue[idx];
-  const n             = queue.length / 3;
-  const timeLimitMs   = n * 4000;
+  const n             = queue.length;
+  const timeLimitMs   = n * 3000;
   const timePct       = Math.min(100, Math.round((elapsed / timeLimitMs) * 100));
   const timeOver      = elapsed > timeLimitMs;
   const queryText     = current ? (reverse ? current.meaning : current.word) : '';
@@ -218,7 +201,7 @@ export function MasterModeScreen({ onNav, desktop }: MasterModeScreenProps) {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span className="nx-mono" style={{ fontSize: 11 }}>
             {idx + 1} / {queue.length}
-            <span style={{ marginLeft: 8, color: 'var(--ink-mute)' }}>全問連続正解必須</span>
+            <span style={{ marginLeft: 8, color: 'var(--ink-mute)' }}>ミス不可 · 全問正解必須</span>
           </span>
           <span className="nx-mono" style={{ fontSize: 11, color: timePct > 80 ? 'var(--red)' : 'var(--amber)' }}>
             {fmtMs(elapsed)} / {fmtMs(timeLimitMs)}
@@ -281,7 +264,7 @@ export function MasterModeScreen({ onNav, desktop }: MasterModeScreenProps) {
       <div className="nx-overline" style={{ fontSize: 11, color: 'var(--ink-soft)' }}>
         {failReason === 'wrong'
           ? '不正解がありました。全問連続正解が必要です。'
-          : `時間超過。${fmtMs(elapsed)} / 制限 ${fmtMs(n * 2500)}`}
+          : `時間超過。${fmtMs(elapsed)} / 制限 ${fmtMs(n * 3000)}`}
       </div>
       <div style={{ display: 'flex', gap: 12 }}>
         <NxBtn onClick={retry} style={{ color: GOLD, borderColor: 'rgba(255,210,92,0.4)' }}>もう一度</NxBtn>
@@ -297,7 +280,7 @@ export function MasterModeScreen({ onNav, desktop }: MasterModeScreenProps) {
       <div className="nx-h" style={{ fontSize: 32, color: GOLD, textShadow: GOLD_SHADOW }}>MASTERED!</div>
       <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
         <NxTag amber>{activeTag}</NxTag>
-        <NxTag amber>{fmtMs(elapsed)} / {fmtMs(n * 2500)}</NxTag>
+        <NxTag amber>{fmtMs(elapsed)} / {fmtMs(n * 3000)}</NxTag>
         <NxTag amber>{queue.length}問全正解</NxTag>
       </div>
       <div className="nx-overline" style={{ fontSize: 11, color: 'var(--ink-soft)' }}>
