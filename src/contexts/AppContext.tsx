@@ -19,7 +19,7 @@ interface AppContextValue {
   pickedBox: number;
   sessionSource: 'home' | 'box';
   selectedMap: number;
-  sessionLog: Array<{ word: string; correct: boolean }>;
+  sessionLog: Array<{ word: string; correct: boolean; responseMs: number }>;
   lastResult: LastResult | null;
   tagFilter: string | null;
   timerTotal: number;
@@ -39,7 +39,7 @@ interface AppContextValue {
   showResult: boolean;
   setShowResult: (v: boolean) => void;
   quizKey: number;
-  recordAnswer: (wordId: string, correct: boolean) => void;
+  recordAnswer: (wordId: string, correct: boolean, responseMs: number) => void;
   addWords: (newWords: Omit<Word, 'id'>[]) => void;
   deleteWords: (ids: string[]) => void;
   go: (s: Screen) => void;
@@ -64,7 +64,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [selectedMap, setSelectedMap]     = useState(0);
   const [currentStreak, setCurrentStreak] = useState(0);
   const [maxStreak, setMaxStreak]         = useState(0);
-  const [sessionLog, setSessionLog]       = useState<Array<{ word: string; correct: boolean }>>([]);
+  const [sessionLog, setSessionLog]       = useState<Array<{ word: string; correct: boolean; responseMs: number }>>([]);
   const [lastResult, setLastResult]       = useState<LastResult | null>(null);
   const [tagFilter, setTagFilter]         = useState<string | null>(null);
   const [showResult, setShowResult]       = useState(true);
@@ -213,7 +213,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const level = useMemo(() => Math.floor(xp / 50) + 1, [xp]);
 
   // ── Word mutations ─────────────────────────────────────────────────────
-  const recordAnswer = useCallback((wordId: string, correct: boolean) => {
+  const recordAnswer = useCallback((wordId: string, correct: boolean, responseMs: number) => {
     if (correct) {
       setCurrentStreak(s => { const n = s + 1; setMaxStreak(m => Math.max(m, n)); return n; });
     } else {
@@ -223,12 +223,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const word = wordsRef.current.find(w => w.id === wordId);
     if (!word) return;
 
-    setSessionLog(prev => [{ word: word.word, correct }, ...prev].slice(0, 10));
+    setSessionLog(prev => [{ word: word.word, correct, responseMs }, ...prev].slice(0, 10));
 
     const attempts        = word.attempts + 1;
     const correct_answers = word.correct_answers + (correct ? 1 : 0);
     const accuracy        = Math.round((correct_answers / attempts) * 100);
-    const updated         = { ...word, attempts, correct_answers, accuracy };
+    const prevAvg         = word.avgResponseMs ?? responseMs;
+    const avgResponseMs   = Math.round((prevAvg * (attempts - 1) + responseMs) / attempts);
+    const updated         = { ...word, attempts, correct_answers, accuracy, avgResponseMs };
 
     // Always update local state immediately for instant UI feedback
     setWords(prev => prev.map(w => w.id === wordId ? updated : w));

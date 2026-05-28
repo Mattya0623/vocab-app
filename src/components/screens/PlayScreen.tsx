@@ -1,5 +1,5 @@
 'use client';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { NxCard, NxBtn, NxTag, NxProgress, NxIcon } from '@/components/ui';
 import { NxMobileHeader } from '@/components/layout/NxMobileHeader';
 import { NxTabBar } from '@/components/layout/NxTabBar';
@@ -58,6 +58,7 @@ export function PlayScreen({ onNav, onAnswer, reverse, desktop }: PlayScreenProp
 
   // Build quiz once per mount — quizPool is stable for this mount since tagFilter lives in context
   const [quiz] = useState(() => buildQuiz(quizPool, reverse));
+  const questionStartRef = useRef(Date.now());
 
   const { current, options, correctIdx } = quiz;
   const nebula = NEBULAE[boxOf(current.accuracy) - 1];
@@ -65,6 +66,7 @@ export function PlayScreen({ onNav, onAnswer, reverse, desktop }: PlayScreenProp
   const slots = [...options, '', '', '', ''].slice(0, 4) as string[];
 
   const handleAnswer = (idx: number) => {
+    const responseMs = Date.now() - questionStartRef.current;
     const ok = idx === correctIdx;
     const chosen = slots[idx] || '';
     const newAttempts = current.attempts + 1;
@@ -80,7 +82,7 @@ export function PlayScreen({ onNav, onAnswer, reverse, desktop }: PlayScreenProp
       nebula: NEBULAE[boxOf(current.accuracy) - 1],
       prevStreak: stats.currentStreak,
     });
-    recordAnswer(current.id, ok);
+    recordAnswer(current.id, ok, responseMs);
     onAnswer(ok);
   };
 
@@ -202,6 +204,7 @@ export function PlayScreen({ onNav, onAnswer, reverse, desktop }: PlayScreenProp
                   <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'center', padding: '6px 0', borderBottom: '1px solid rgba(118,138,220,0.1)', fontSize: 13 }}>
                     <NxIcon kind={entry.correct ? 'check' : 'x'} size={14} color={entry.correct ? 'var(--green)' : 'var(--red)'} glow />
                     <span style={{ flex: 1 }}>{entry.word}</span>
+                    <span className="nx-mono" style={{ fontSize: 10, color: 'var(--ink-mute)' }}>{(entry.responseMs / 1000).toFixed(1)}s</span>
                     <span className="nx-mono" style={{ color: entry.correct ? 'var(--green)' : 'var(--ink-mute)' }}>{entry.correct ? '+1 XP' : '+0'}</span>
                   </div>
                 ))}

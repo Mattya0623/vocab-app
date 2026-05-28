@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { NxCard, NxBtn, NxIcon } from '@/components/ui';
 import { NxMobileHeader } from '@/components/layout/NxMobileHeader';
 import { NxTabBar } from '@/components/layout/NxTabBar';
@@ -61,8 +61,10 @@ export function BoxQuizScreen({ onNav, onAnswer, onExit, box, reverse }: BoxQuiz
 
   const slots = [...options, '', '', '', ''].slice(0, 4) as string[];
   const sessionCount = sessionLog.length;
+  const questionStartRef = useRef(Date.now());
 
   const handleAnswer = (idx: number) => {
+    const responseMs = Date.now() - questionStartRef.current;
     const ok = idx === correctIdx;
     const chosen = slots[idx] || '';
     const newAttempts = current.attempts + 1;
@@ -78,7 +80,7 @@ export function BoxQuizScreen({ onNav, onAnswer, onExit, box, reverse }: BoxQuiz
       nebula: NEBULAE[boxOf(current.accuracy) - 1],
       prevStreak: stats.currentStreak,
     });
-    recordAnswer(current.id, ok);
+    recordAnswer(current.id, ok, responseMs);
     onAnswer(ok);
   };
 

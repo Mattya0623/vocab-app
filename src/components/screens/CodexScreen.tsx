@@ -192,7 +192,7 @@ export function CodexScreen({ onNav, desktop }: CodexScreenProps) {
                     <NxProgress value={w.accuracy} thin style={{ flex: 1 }} />
                     <span className="nx-mono" style={{ minWidth: 32, textAlign: 'right', color: w.accuracy >= 75 ? 'var(--green)' : w.accuracy >= 40 ? 'var(--amber)' : 'var(--red)' }}>{w.accuracy}%</span>
                   </div>
-                  <span className="nx-mono">{w.correct_answers}/{w.attempts}</span>
+                  <span className="nx-mono">{w.correct_answers}/{w.attempts}{w.avgResponseMs != null ? ` · ${(w.avgResponseMs / 1000).toFixed(1)}s` : ''}</span>
                 </div>
               );
             })}
@@ -273,7 +273,7 @@ export function CodexScreen({ onNav, desktop }: CodexScreenProps) {
               </div>
               <div style={{ textAlign: 'right' }}>
                 <div className="nx-mono" style={{ color: w.accuracy >= 75 ? 'var(--green)' : w.accuracy >= 40 ? 'var(--amber)' : 'var(--red)' }}>{w.accuracy}%</div>
-                <div className="nx-overline" style={{ fontSize: 9 }}>{w.correct_answers}/{w.attempts}</div>
+                <div className="nx-overline" style={{ fontSize: 9 }}>{w.correct_answers}/{w.attempts}{w.avgResponseMs != null ? ` · ${(w.avgResponseMs / 1000).toFixed(1)}s` : ''}</div>
               </div>
               <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                 <NxTag style={{ color: b.color, borderColor: b.color + '88', background: b.color + '15' }}>{b.name.toUpperCase()}</NxTag>
