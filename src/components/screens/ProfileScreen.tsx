@@ -65,7 +65,7 @@ export function ProfileScreen({ onNav, desktop }: ProfileScreenProps) {
         [t('STAT_AVG'),        `${stats.totalAttempts > 0 ? Math.round((stats.totalCorrect / stats.totalAttempts) * 100) : 0}%`, 'green'],
         [t('STAT_MAX_STREAK'), String(stats.maxStreak),    'amber'],
         [t('STAT_WORDS'),      String(stats.wordsCount),   'mag'],
-        ['MASTERED TAGS',      String(masteredTags.length), 'amber'],
+        ['MASTERED TAGS',      String(Object.keys(masteredTags).length), 'amber'],
       ].map(([k, v, cc], i) => (
         <NxCard key={i} style={{ padding: desktop ? 10 : 12, minWidth: 0, overflow: 'hidden' }}
           bracket={cc === 'amber' ? 'amber' : cc === 'mag' ? 'mag' : undefined}>

@@ -11,6 +11,107 @@ import type { Screen, Word } from '@/types';
 const GOLD = 'var(--amber)';
 const GOLD_SHADOW = '0 0 14px var(--amber)';
 
+interface PrestigeStyle {
+  color: string;
+  gradient?: string;
+  shadow: string;
+  border: string;
+  bg: string;
+  label: string;
+  emoji: string;
+}
+
+function getPrestige(count: number): PrestigeStyle {
+  if (count >= 25) return {
+    color: '#e8f4ff',
+    gradient: 'linear-gradient(135deg,#ffffff 0%,#b0d8ff 35%,#ffd6ff 65%,#ffffff 100%)',
+    shadow: '0 0 28px rgba(255,255,255,0.85), 0 0 56px rgba(160,210,255,0.4)',
+    border: 'rgba(255,255,255,0.65)',
+    bg: 'rgba(255,255,255,0.05)',
+    label: 'STELLAR',
+    emoji: '✨',
+  };
+  if (count >= 20) return {
+    color: '#5599ff',
+    gradient: 'linear-gradient(135deg,#1122dd 0%,#5599ff 50%,#0011aa 100%)',
+    shadow: '0 0 22px rgba(85,153,255,0.75)',
+    border: 'rgba(85,153,255,0.55)',
+    bg: 'rgba(85,153,255,0.06)',
+    label: 'MIDNIGHT',
+    emoji: '🌌',
+  };
+  if (count >= 15) return {
+    color: '#bb55ff',
+    gradient: 'linear-gradient(135deg,#550099 0%,#bb55ff 50%,#330066 100%)',
+    shadow: '0 0 20px rgba(187,85,255,0.65)',
+    border: 'rgba(187,85,255,0.5)',
+    bg: 'rgba(187,85,255,0.06)',
+    label: 'ABYSS',
+    emoji: '🔮',
+  };
+  if (count >= 10) return {
+    color: '#dd55ff',
+    gradient: 'linear-gradient(135deg,#9900ee 0%,#dd55ff 50%,#bb00cc 100%)',
+    shadow: '0 0 18px rgba(187,0,238,0.65)',
+    border: 'rgba(187,0,238,0.5)',
+    bg: 'rgba(187,0,238,0.05)',
+    label: 'ARCANE',
+    emoji: '💜',
+  };
+  if (count >= 7) return {
+    color: '#cc1111',
+    gradient: undefined,
+    shadow: '0 0 14px rgba(180,0,0,0.7)',
+    border: 'rgba(180,0,0,0.5)',
+    bg: 'rgba(160,0,0,0.06)',
+    label: 'CRIMSON',
+    emoji: '🔴',
+  };
+  if (count >= 5) return {
+    color: 'var(--red)',
+    gradient: undefined,
+    shadow: '0 0 12px var(--red)',
+    border: 'rgba(255,92,122,0.5)',
+    bg: 'rgba(255,92,122,0.05)',
+    label: 'SCARLET',
+    emoji: '❤️',
+  };
+  if (count >= 3) return {
+    color: '#ff6eb4',
+    gradient: undefined,
+    shadow: '0 0 12px rgba(255,110,180,0.6)',
+    border: 'rgba(255,110,180,0.5)',
+    bg: 'rgba(255,110,180,0.05)',
+    label: 'ROSE',
+    emoji: '🌸',
+  };
+  return {
+    color: GOLD,
+    gradient: undefined,
+    shadow: GOLD_SHADOW,
+    border: 'rgba(255,210,92,0.5)',
+    bg: 'rgba(255,210,92,0.06)',
+    label: 'GOLD',
+    emoji: '🏆',
+  };
+}
+
+function PrestigeText({ text, style: p, fontSize, bold }: { text: string; style: PrestigeStyle; fontSize?: number; bold?: boolean }) {
+  if (p.gradient) {
+    return (
+      <span style={{
+        background: p.gradient,
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        backgroundClip: 'text',
+        fontSize, fontWeight: bold ? 700 : undefined,
+        filter: `drop-shadow(0 0 6px ${p.color}88)`,
+      }}>{text}</span>
+    );
+  }
+  return <span style={{ color: p.color, fontSize, fontWeight: bold ? 700 : undefined }}>{text}</span>;
+}
+
 interface MasterModeScreenProps {
   onNav: (s: Screen) => void;
   desktop?: boolean;
@@ -138,37 +239,53 @@ export function MasterModeScreen({ onNav, desktop }: MasterModeScreenProps) {
         </div>
       )}
       {allTags.map(tag => {
-        const tagWords  = words.filter(w => w.tags?.includes(tag));
-        const n         = tagWords.length;
-        const mastered  = masteredTags.includes(tag);
+        const tagWords   = words.filter(w => w.tags?.includes(tag));
+        const n          = tagWords.length;
+        const clearCount = masteredTags[tag] ?? 0;
+        const mastered   = clearCount > 0;
+        const p          = mastered ? getPrestige(clearCount) : null;
         const timeLimitS = (n * 3).toFixed(0);
-        const canStart  = n >= 2;
-        const c         = mastered ? GOLD : 'var(--cyan)';
+        const canStart   = n >= 2;
         return (
           <div key={tag}
             onClick={() => canStart && startQuiz(tag)}
             style={{
               padding: desktop ? '14px 18px' : '12px 16px',
               borderRadius: 10,
-              border: `1px solid ${mastered ? 'rgba(255,210,92,0.5)' : 'rgba(92,232,255,0.3)'}`,
-              background: mastered ? 'rgba(255,210,92,0.06)' : 'rgba(92,232,255,0.04)',
-              boxShadow: mastered ? `0 0 20px -8px ${GOLD}` : 'none',
+              border: `1px solid ${mastered && p ? p.border : 'rgba(92,232,255,0.3)'}`,
+              background: mastered && p ? p.bg : 'rgba(92,232,255,0.04)',
+              boxShadow: mastered && p ? `0 0 20px -8px ${p.color}` : 'none',
               cursor: canStart ? 'pointer' : 'default',
               opacity: canStart ? 1 : 0.45,
               display: 'flex', alignItems: 'center', gap: 14,
               transition: 'all 0.2s',
             }}>
-            <div style={{ fontSize: 22, lineHeight: 1 }}>{mastered ? '🏆' : '🏷️'}</div>
+            <div style={{ fontSize: 22, lineHeight: 1 }}>{mastered && p ? p.emoji : '🏷️'}</div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div className="nx-h" style={{ fontSize: 14, color: c, textShadow: mastered ? GOLD_SHADOW : undefined }}>
-                {tag}
+              <div className="nx-h" style={{ fontSize: 14 }}>
+                {mastered && p
+                  ? <PrestigeText text={tag} style={p} fontSize={14} bold />
+                  : <span style={{ color: 'var(--cyan)' }}>{tag}</span>
+                }
               </div>
               <div className="nx-overline" style={{ marginTop: 2, fontSize: 9 }}>
                 {n}語 · {n}問 · ミス不可 · {timeLimitS}s以内
+                {mastered && clearCount > 0 && (
+                  <span style={{ marginLeft: 6, color: mastered && p ? p.color : GOLD }}>
+                    × {clearCount} {mastered && p ? p.label : ''}
+                  </span>
+                )}
               </div>
             </div>
-            {mastered ? (
-              <NxTag amber>MASTERED</NxTag>
+            {mastered && p ? (
+              <span className="nx-mono" style={{
+                fontSize: 10, padding: '3px 8px', borderRadius: 4,
+                border: `1px solid ${p.border}`,
+                color: p.gradient ? undefined : p.color,
+                background: p.gradient ? p.gradient : undefined,
+                WebkitBackgroundClip: p.gradient ? 'text' : undefined,
+                WebkitTextFillColor: p.gradient ? 'transparent' : undefined,
+              }}>{p.label}</span>
             ) : (
               <NxIcon kind="arrow" size={14} color="var(--ink-mute)" />
             )}
@@ -179,6 +296,8 @@ export function MasterModeScreen({ onNav, desktop }: MasterModeScreenProps) {
   );
 
   // ── QUIZ PHASE ──────────────────────────────────────────────────────────
+  const clearCount    = masteredTags[activeTag] ?? 0;
+  const activePrestige = clearCount > 0 ? getPrestige(clearCount) : null;
   const current       = queue[idx];
   const n             = queue.length;
   const timeLimitMs   = n * 3000;
@@ -274,19 +393,45 @@ export function MasterModeScreen({ onNav, desktop }: MasterModeScreenProps) {
   );
 
   // ── SUCCESS PHASE ────────────────────────────────────────────────────────
+  // clearCount/activePrestige reflect the PREVIOUS clear count (before masterTag runs)
+  // After masterTag() the new count = clearCount + 1
+  const newCount    = clearCount + 1;
+  const newPrestige = getPrestige(newCount);
   const successContent = (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 20, flex: 1, textAlign: 'center' }}>
-      <div style={{ fontSize: 56, filter: `drop-shadow(0 0 20px ${GOLD})` }}>🏆</div>
-      <div className="nx-h" style={{ fontSize: 32, color: GOLD, textShadow: GOLD_SHADOW }}>MASTERED!</div>
-      <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-        <NxTag amber>{activeTag}</NxTag>
-        <NxTag amber>{fmtMs(elapsed)} / {fmtMs(n * 3000)}</NxTag>
-        <NxTag amber>{queue.length}問全正解</NxTag>
+      <div style={{ fontSize: 56, filter: `drop-shadow(0 0 24px ${newPrestige.color})` }}>{newPrestige.emoji}</div>
+      <div className="nx-h" style={{ fontSize: 32 }}>
+        <PrestigeText text="MASTERED!" style={newPrestige} fontSize={32} bold />
       </div>
-      <div className="nx-overline" style={{ fontSize: 11, color: 'var(--ink-soft)' }}>
-        このタグはゴールドに昇格しました
+      <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap', alignItems: 'center' }}>
+        <span className="nx-mono" style={{
+          padding: '3px 10px', borderRadius: 4,
+          border: `1px solid ${newPrestige.border}`,
+          fontSize: 11,
+        }}>
+          <PrestigeText text={activeTag} style={newPrestige} fontSize={11} />
+        </span>
+        <span className="nx-mono" style={{ fontSize: 11, color: 'var(--ink-soft)' }}>
+          {fmtMs(elapsed)} / {fmtMs(n * 3000)}
+        </span>
+        <span className="nx-mono" style={{ fontSize: 11, color: 'var(--ink-soft)' }}>
+          {queue.length}問全正解
+        </span>
       </div>
-      <NxBtn onClick={exit} style={{ color: GOLD, borderColor: 'rgba(255,210,92,0.4)' }}>タグ一覧に戻る</NxBtn>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+        <div className="nx-overline" style={{ fontSize: 11 }}>
+          <PrestigeText text={`× ${newCount}  ${newPrestige.label}`} style={newPrestige} fontSize={13} bold />
+        </div>
+        {newCount === 1 && (
+          <div className="nx-overline" style={{ fontSize: 10, color: 'var(--ink-mute)' }}>このタグがゴールドに昇格しました</div>
+        )}
+        {newCount > 1 && activePrestige && (
+          <div className="nx-overline" style={{ fontSize: 10, color: 'var(--ink-mute)' }}>
+            {activePrestige.label} → <PrestigeText text={newPrestige.label} style={newPrestige} fontSize={10} bold />
+          </div>
+        )}
+      </div>
+      <NxBtn onClick={exit} style={{ color: newPrestige.color, borderColor: newPrestige.border }}>タグ一覧に戻る</NxBtn>
     </div>
   );
 

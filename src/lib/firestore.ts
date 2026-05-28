@@ -13,7 +13,7 @@ const profileRef = (db: Firestore, uid: string) =>
 export interface UserProfile {
   username: string;
   maxStreak: number;
-  masteredTags?: string[];
+  masteredTags?: Record<string, number> | string[];
   createdAt: unknown;
 }
 
@@ -35,7 +35,7 @@ export async function saveMaxStreak(db: Firestore, uid: string, maxStreak: numbe
   await setDoc(profileRef(db, uid), { maxStreak }, { merge: true });
 }
 
-export async function saveMasteredTags(db: Firestore, uid: string, masteredTags: string[]): Promise<void> {
+export async function saveMasteredTags(db: Firestore, uid: string, masteredTags: Record<string, number>): Promise<void> {
   await setDoc(profileRef(db, uid), { masteredTags }, { merge: true });
 }
 

@@ -112,7 +112,7 @@ export function PlayScreen({ onNav, onAnswer, reverse, desktop }: PlayScreenProp
         <NxTag cyan={tagFilter === null} style={{ whiteSpace: 'nowrap', cursor: 'pointer' }}>ALL</NxTag>
       </span>
       {allTags.map(tg => {
-        const mastered = masteredTags.includes(tg);
+        const mastered = (masteredTags[tg] ?? 0) > 0;
         return (
           <span key={tg} onClick={() => setTagFilter(tg === tagFilter ? null : tg)} className="nx-clickable">
             <NxTag

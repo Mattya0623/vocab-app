@@ -36,7 +36,7 @@ interface AppContextValue {
   setSelectedMap: (i: number) => void;
   setLastResult: (r: LastResult) => void;
   setTagFilter: (t: string | null) => void;
-  masteredTags: string[];
+  masteredTags: Record<string, number>;
   masterTag: (tag: string) => void;
   showResult: boolean;
   setShowResult: (v: boolean) => void;
@@ -69,7 +69,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [sessionLog, setSessionLog]       = useState<Array<{ word: string; correct: boolean; responseMs: number }>>([]);
   const [lastResult, setLastResult]       = useState<LastResult | null>(null);
   const [tagFilter, setTagFilter]         = useState<string | null>(null);
-  const [masteredTags, setMasteredTags]   = useState<string[]>([]);
+  const [masteredTags, setMasteredTags]   = useState<Record<string, number>>({});
   const [showResult, setShowResult]       = useState(true);
   const [quizKey, setQuizKey]             = useState(0);
   const showResultRef                     = useRef(true);
@@ -155,7 +155,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
           setUsername(profile.username);
           if (profile.maxStreak) setMaxStreak(profile.maxStreak);
-          if (profile.masteredTags) setMasteredTags(profile.masteredTags);
+          if (profile.masteredTags) {
+            const raw = profile.masteredTags;
+            if (Array.isArray(raw)) {
+              // Migrate old string[] format
+              const converted: Record<string, number> = {};
+              raw.forEach(tag => { converted[tag] = 1; });
+              setMasteredTags(converted);
+            } else {
+              setMasteredTags(raw as Record<string, number>);
+            }
+          }
           setScreen(s => (s === 'login' || s === 'setup') ? 'maps' : s);
           wordsUnsubRef.current = subscribeWords(db, firebaseUser.uid, setWords);
         } catch (e) {
@@ -323,8 +333,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const masterTag = useCallback((tag: string) => {
     setMasteredTags(prev => {
-      if (prev.includes(tag)) return prev;
-      const next = [...prev, tag];
+      const next = { ...prev, [tag]: (prev[tag] ?? 0) + 1 };
       const u  = userRef.current;
       const db = dbRef.current;
       if (u && !u.isAnonymous && db) {
