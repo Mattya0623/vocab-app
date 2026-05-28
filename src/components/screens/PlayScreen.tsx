@@ -3,6 +3,7 @@ import { useState, useMemo, useRef } from 'react';
 import { NxCard, NxBtn, NxTag, NxProgress, NxIcon } from '@/components/ui';
 import { NxMobileHeader } from '@/components/layout/NxMobileHeader';
 import { NxTabBar } from '@/components/layout/NxTabBar';
+import { getPrestige } from '@/lib/prestige';
 import { NxDesktopShell } from '@/components/layout/NxDesktopShell';
 import { useT } from '@/contexts/I18nContext';
 import { useApp } from '@/contexts/AppContext';
@@ -112,15 +113,30 @@ export function PlayScreen({ onNav, onAnswer, reverse, desktop }: PlayScreenProp
         <NxTag cyan={tagFilter === null} style={{ whiteSpace: 'nowrap', cursor: 'pointer' }}>ALL</NxTag>
       </span>
       {allTags.map(tg => {
-        const mastered = (masteredTags[tg] ?? 0) > 0;
+        const clearCount = masteredTags[tg] ?? 0;
+        const mastered   = clearCount > 0;
+        const p          = mastered ? getPrestige(clearCount) : null;
+        const isActive   = tagFilter === tg;
         return (
           <span key={tg} onClick={() => setTagFilter(tg === tagFilter ? null : tg)} className="nx-clickable">
-            <NxTag
-              amber={mastered}
-              cyan={!mastered && tagFilter === tg}
-              style={{ whiteSpace: 'nowrap', cursor: 'pointer', boxShadow: mastered ? '0 0 8px var(--amber)' : undefined }}>
-              {mastered ? '🏆' : ''}{tg}
-            </NxTag>
+            {mastered && p ? (
+              <span className="nx-tag" style={{
+                whiteSpace: 'nowrap', cursor: 'pointer',
+                color: p.color,
+                borderColor: p.border,
+                boxShadow: isActive ? p.shadow : `0 0 6px ${p.color}44`,
+                background: isActive ? p.bg : undefined,
+                outline: isActive ? `1px solid ${p.color}66` : undefined,
+              }}>
+                {p.emoji}{tg}
+              </span>
+            ) : (
+              <NxTag
+                cyan={isActive}
+                style={{ whiteSpace: 'nowrap', cursor: 'pointer' }}>
+                {tg}
+              </NxTag>
+            )}
           </span>
         );
       })}
