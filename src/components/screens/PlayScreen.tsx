@@ -37,7 +37,7 @@ function buildQuiz(words: Word[], reverse: boolean) {
 
 export function PlayScreen({ onNav, onAnswer, reverse, desktop }: PlayScreenProps) {
   const t = useT();
-  const { level, xp, stats, words, recordAnswer, sessionLog, setLastResult, tagFilter, setTagFilter } = useApp();
+  const { level, xp, stats, words, recordAnswer, sessionLog, setLastResult, tagFilter, setTagFilter, masteredTags } = useApp();
   const maxXp = 10 * level ** 2;
   const minXp = 10 * (level - 1) ** 2;
   const xpPct  = maxXp > minXp ? Math.round(((xp - minXp) / (maxXp - minXp)) * 100) : 0;
@@ -111,11 +111,19 @@ export function PlayScreen({ onNav, onAnswer, reverse, desktop }: PlayScreenProp
       <span onClick={() => setTagFilter(null)} className="nx-clickable">
         <NxTag cyan={tagFilter === null} style={{ whiteSpace: 'nowrap', cursor: 'pointer' }}>ALL</NxTag>
       </span>
-      {allTags.map(tg => (
-        <span key={tg} onClick={() => setTagFilter(tg === tagFilter ? null : tg)} className="nx-clickable">
-          <NxTag cyan={tagFilter === tg} style={{ whiteSpace: 'nowrap', cursor: 'pointer' }}>{tg}</NxTag>
-        </span>
-      ))}
+      {allTags.map(tg => {
+        const mastered = masteredTags.includes(tg);
+        return (
+          <span key={tg} onClick={() => setTagFilter(tg === tagFilter ? null : tg)} className="nx-clickable">
+            <NxTag
+              amber={mastered}
+              cyan={!mastered && tagFilter === tg}
+              style={{ whiteSpace: 'nowrap', cursor: 'pointer', boxShadow: mastered ? '0 0 8px var(--amber)' : undefined }}>
+              {mastered ? '🏆' : ''}{tg}
+            </NxTag>
+          </span>
+        );
+      })}
       {tagFilter && (
         <span className="nx-mono" style={{ fontSize: 10, color: 'var(--ink-mute)', whiteSpace: 'nowrap', marginLeft: 4 }}>
           {filteredWords.length} 語

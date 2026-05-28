@@ -6,9 +6,10 @@ import type { Screen } from '@/types';
 const TAB_ITEMS: { id: Screen; labelKey: string; icon: Parameters<typeof NxIcon>[0]['kind'] }[] = [
   { id: 'maps',  labelKey: 'MAPS',    icon: 'orbit' },
   { id: 'timer', labelKey: 'TIMER',   icon: 'clock' },
-  { id: 'home',  labelKey: 'PLAY',    icon: 'sparkle' },
-  { id: 'boxes', labelKey: 'NEBULAE', icon: 'star' },
-  { id: 'list',  labelKey: 'CODEX',   icon: 'list' },
+  { id: 'home',   labelKey: 'PLAY',    icon: 'sparkle' },
+  { id: 'master', labelKey: 'MASTER',  icon: 'medal' },
+  { id: 'boxes',  labelKey: 'NEBULAE', icon: 'star' },
+  { id: 'list',   labelKey: 'CODEX',   icon: 'list' },
 ];
 
 interface NxTabBarProps {

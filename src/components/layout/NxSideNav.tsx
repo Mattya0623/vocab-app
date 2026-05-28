@@ -10,6 +10,7 @@ const NAV_ITEMS: { id: Screen; labelKey: string; subKey: string; icon: Parameter
   { id: 'maps',     labelKey: 'MAPS',     subKey: 'MAPS_SUB',     icon: 'orbit' },
   { id: 'timer',    labelKey: 'TIMER',    subKey: 'TIMER_SUB',    icon: 'clock' },
   { id: 'home',     labelKey: 'PLAY',     subKey: 'PLAY_SUB',     icon: 'sparkle' },
+  { id: 'master',   labelKey: 'MASTER',   subKey: 'MASTER_SUB',   icon: 'medal' },
   { id: 'boxes',    labelKey: 'NEBULAE',  subKey: 'NEBULAE_SUB',  icon: 'star' },
   { id: 'list',     labelKey: 'CODEX',    subKey: 'CODEX_SUB',    icon: 'list' },
   { id: 'import',   labelKey: 'IMPORT',   subKey: 'IMPORT_SUB',   icon: 'upload' },

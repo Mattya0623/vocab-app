@@ -19,7 +19,7 @@ export function ProfileScreen({ onNav, desktop }: ProfileScreenProps) {
   const t = useT();
   const { lang } = useI18n();
   const loc = (s: I18nStr) => s[lang as keyof I18nStr] ?? s.en;
-  const { level, xp, stats, username, words } = useApp();
+  const { level, xp, stats, username, words, masteredTags } = useApp();
   const nebulaWordCounts = NEBULAE.map(b => words.filter(w => boxOf(w.accuracy) === b.n).length);
 
   const ctx = { words, stats, level };
@@ -65,6 +65,7 @@ export function ProfileScreen({ onNav, desktop }: ProfileScreenProps) {
         [t('STAT_AVG'),        `${stats.totalAttempts > 0 ? Math.round((stats.totalCorrect / stats.totalAttempts) * 100) : 0}%`, 'green'],
         [t('STAT_MAX_STREAK'), String(stats.maxStreak),    'amber'],
         [t('STAT_WORDS'),      String(stats.wordsCount),   'mag'],
+        ['MASTERED TAGS',      String(masteredTags.length), 'amber'],
       ].map(([k, v, cc], i) => (
         <NxCard key={i} style={{ padding: desktop ? 10 : 12, minWidth: 0, overflow: 'hidden' }}
           bracket={cc === 'amber' ? 'amber' : cc === 'mag' ? 'mag' : undefined}>
@@ -170,7 +171,7 @@ export function ProfileScreen({ onNav, desktop }: ProfileScreenProps) {
         <div style={{ height: '100%', overflow: 'auto', display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1.05fr 1fr', gap: 14, alignItems: 'start' }}>
             <div>{heroCard(100, 24)}</div>
-            <div>{kpiGrid(2)}</div>
+            <div>{kpiGrid(desktop ? 3 : 2)}</div>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, flex: 1, minHeight: 280 }}>
             <div style={{ minHeight: 0 }}>{nebulaChart}</div>

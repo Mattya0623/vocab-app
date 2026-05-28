@@ -36,6 +36,8 @@ interface AppContextValue {
   setSelectedMap: (i: number) => void;
   setLastResult: (r: LastResult) => void;
   setTagFilter: (t: string | null) => void;
+  masteredTags: string[];
+  masterTag: (tag: string) => void;
   showResult: boolean;
   setShowResult: (v: boolean) => void;
   quizKey: number;
@@ -67,6 +69,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [sessionLog, setSessionLog]       = useState<Array<{ word: string; correct: boolean; responseMs: number }>>([]);
   const [lastResult, setLastResult]       = useState<LastResult | null>(null);
   const [tagFilter, setTagFilter]         = useState<string | null>(null);
+  const [masteredTags, setMasteredTags]   = useState<string[]>([]);
   const [showResult, setShowResult]       = useState(true);
   const [quizKey, setQuizKey]             = useState(0);
   const showResultRef                     = useRef(true);
@@ -152,6 +155,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
           setUsername(profile.username);
           if (profile.maxStreak) setMaxStreak(profile.maxStreak);
+          if (profile.masteredTags) setMasteredTags(profile.masteredTags);
           setScreen(s => (s === 'login' || s === 'setup') ? 'maps' : s);
           wordsUnsubRef.current = subscribeWords(db, firebaseUser.uid, setWords);
         } catch (e) {
@@ -317,6 +321,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setTimerRemaining(secs);
   }, []);
 
+  const masterTag = useCallback((tag: string) => {
+    setMasteredTags(prev => {
+      if (prev.includes(tag)) return prev;
+      const next = [...prev, tag];
+      const u  = userRef.current;
+      const db = dbRef.current;
+      if (u && !u.isAnonymous && db) {
+        import('@/lib/firestore').then(({ saveMasteredTags }) =>
+          saveMasteredTags(db, u.uid, next).catch(console.error)
+        );
+      }
+      return next;
+    });
+  }, []);
+
   const go = useCallback((s: Screen) => {
     if (s !== 'boxquiz' && s !== 'result_ok' && s !== 'result_ng') setSessionSource('home');
     setScreen(s);
@@ -338,6 +357,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       user, username, authReady,
       words, stats, level, xp, screen,
       pickedBox, sessionSource, selectedMap, sessionLog, lastResult, tagFilter,
+      masteredTags, masterTag,
       showResult, setShowResult, quizKey,
       timerTotal, timerRemaining, timerRunning, timerDone,
       timerStart, timerPause, timerReset, timerSet,

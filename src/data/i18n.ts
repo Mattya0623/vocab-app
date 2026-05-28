@@ -37,6 +37,9 @@ export const TR: TranslationMap = {
   ACHIEVE_SUB: { en: 'Badges & milestones', ja: 'バッジ & 実績',   zh: '徽章与里程碑',   ko: '배지 & 업적' },
   ACHIEVE_HEAD:{ en: 'ACHIEVEMENTS · バッジ', ja: 'ACHIEVEMENTS · バッジ', zh: '成就 · 徽章', ko: '업적 · 배지' },
   UNLOCKED:    { en: 'unlocked',             ja: '解放済み',             zh: '已解锁',         ko: '해제됨' },
+  MASTER:      { en: 'MASTER',              ja: 'MASTER',             zh: '精通',           ko: '마스터' },
+  MASTER_SUB:  { en: 'Tag mastery',         ja: 'タグ習熟',           zh: '标签精通',       ko: '태그 숙달' },
+  MASTER_HEAD: { en: 'MASTER MODE',         ja: 'マスターモード',     zh: '精通模式',       ko: '마스터 모드' },
   PROFILE_SUB: { en: 'Stats & level',      ja: '統計 & レベル',     zh: '统计与等级',     ko: '통계 & 레벨' },
   SETTINGS_SUB:{ en: 'Preferences',    ja: '設定',           zh: '偏好设置',     ko: '환경 설정' },
 

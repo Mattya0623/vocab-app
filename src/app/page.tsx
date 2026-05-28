@@ -16,6 +16,7 @@ import { SettingsScreen } from '@/components/screens/SettingsScreen';
 import { CosmosMapScreen } from '@/components/screens/CosmosMapScreen';
 import { TimerScreen } from '@/components/screens/TimerScreen';
 import { AchievementScreen } from '@/components/screens/AchievementScreen';
+import { MasterModeScreen } from '@/components/screens/MasterModeScreen';
 import type { Screen } from '@/types';
 
 function useIsDesktop() {
@@ -58,6 +59,8 @@ export default function Home() {
         return <ResultScreen ok onNav={nav} onNext={onNext} onExit={onExitSession} />;
       case 'result_ng':
         return <ResultScreen ok={false} onNav={nav} onNext={onNext} onExit={onExitSession} />;
+      case 'master':
+        return <MasterModeScreen onNav={nav} desktop={desktop} />;
       case 'boxes':
         return <NebulaeScreen onNav={nav} onPick={onPick} onSelect={setPickedBox} selected={pickedBox} desktop={desktop} />;
       case 'boxquiz':
