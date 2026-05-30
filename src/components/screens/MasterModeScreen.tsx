@@ -64,7 +64,7 @@ function fmtMs(ms: number) {
 export function MasterModeScreen({ onNav, desktop }: MasterModeScreenProps) {
   const t    = useT();
   const { reverse } = useI18n();
-  const { words, masteredTags, masterTag } = useApp();
+  const { words, masteredTags, masterTag, recordAnswer } = useApp();
 
   const [phase,       setPhase]       = useState<Phase>('select');
   const [activeTag,   setActiveTag]   = useState('');
@@ -74,8 +74,9 @@ export function MasterModeScreen({ onNav, desktop }: MasterModeScreenProps) {
   const [elapsed,     setElapsed]     = useState(0);
   const [failReason,  setFailReason]  = useState('');
 
-  const startTimeRef    = useRef(0);
-  const timerRef        = useRef<ReturnType<typeof setInterval> | null>(null);
+  const startTimeRef       = useRef(0);
+  const questionStartRef   = useRef(0);
+  const timerRef           = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const allTags = useMemo(() => {
     const s = new Set<string>();
@@ -103,15 +104,19 @@ export function MasterModeScreen({ onNav, desktop }: MasterModeScreenProps) {
     setIdx(0);
     setChoices(c);
     setElapsed(0);
-    startTimeRef.current = Date.now();
+    startTimeRef.current   = Date.now();
+    questionStartRef.current = Date.now();
     setPhase('quiz');
   };
 
   const handleAnswer = (choiceIdx: number) => {
-    const current   = queue[idx];
-    const correct   = reverse ? current.word : current.meaning;
-    const chosen    = choices[choiceIdx];
-    const isCorrect = chosen === correct;
+    const current    = queue[idx];
+    const correct    = reverse ? current.word : current.meaning;
+    const chosen     = choices[choiceIdx];
+    const isCorrect  = chosen === correct;
+    const responseMs = Date.now() - questionStartRef.current;
+
+    recordAnswer(current.id, isCorrect, responseMs);
 
     if (!isCorrect) {
       setFailReason('wrong');
@@ -121,7 +126,6 @@ export function MasterModeScreen({ onNav, desktop }: MasterModeScreenProps) {
 
     const nextIdx = idx + 1;
     if (nextIdx >= queue.length) {
-      // All questions done — check time
       const totalMs     = Date.now() - startTimeRef.current;
       const n           = queue.length;
       const timeLimitMs = n * 3000;
@@ -137,6 +141,7 @@ export function MasterModeScreen({ onNav, desktop }: MasterModeScreenProps) {
       return;
     }
 
+    questionStartRef.current = Date.now();
     setIdx(nextIdx);
     setChoices(buildChoices(queue[nextIdx], words, reverse));
   };
