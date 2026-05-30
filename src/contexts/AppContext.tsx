@@ -218,9 +218,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // ── Stats / XP / Level ─────────────────────────────────────────────────
   const stats = useMemo<UserStats>(() => {
-    const totalAttempts = words.reduce((s, w) => s + w.attempts, 0);
-    const totalCorrect  = words.reduce((s, w) => s + w.correct_answers, 0);
-    return { totalAttempts, totalCorrect, maxStreak, currentStreak, wordsCount: words.length };
+    const totalAttempts   = words.reduce((s, w) => s + w.attempts, 0);
+    const totalCorrect    = words.reduce((s, w) => s + w.correct_answers, 0);
+    const totalResponseMs = words.reduce((s, w) => s + (w.avgResponseMs ?? 0) * w.attempts, 0);
+    return { totalAttempts, totalCorrect, maxStreak, currentStreak, wordsCount: words.length, totalResponseMs };
   }, [words, maxStreak, currentStreak]);
 
   const xp    = stats.totalCorrect;

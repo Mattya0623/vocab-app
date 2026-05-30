@@ -58,6 +58,11 @@ export function ProfileScreen({ onNav, desktop }: ProfileScreenProps) {
     </NxCard>
   );
 
+  const totalMin  = Math.floor(stats.totalResponseMs / 1000 / 60);
+  const totalH    = Math.floor(totalMin / 60);
+  const totalM    = totalMin % 60;
+  const totalTime = `${totalH}h:${String(totalM).padStart(2, '0')}m`;
+
   const kpiGrid = (cols: number) => (
     <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: 8, minWidth: 0 }}>
       {[
@@ -66,6 +71,7 @@ export function ProfileScreen({ onNav, desktop }: ProfileScreenProps) {
         [t('STAT_MAX_STREAK'), String(stats.maxStreak),    'amber'],
         [t('STAT_WORDS'),      String(stats.wordsCount),   'mag'],
         ['MASTERED TAGS',      String(Object.keys(masteredTags).length), 'amber'],
+        ['TOTAL TIME',         totalTime,                  'cyan'],
       ].map(([k, v, cc], i) => (
         <NxCard key={i} style={{ padding: desktop ? 10 : 12, minWidth: 0, overflow: 'hidden' }}
           bracket={cc === 'amber' ? 'amber' : cc === 'mag' ? 'mag' : undefined}>

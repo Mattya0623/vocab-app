@@ -17,6 +17,7 @@ export interface UserStats {
   maxStreak: number;
   currentStreak: number;
   wordsCount: number;
+  totalResponseMs: number;
 }
 
 export interface Nebula {
