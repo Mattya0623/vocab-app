@@ -322,10 +322,10 @@ export function MasterModeScreen({ onNav, desktop }: MasterModeScreenProps) {
   );
 
   // ── SUCCESS PHASE ────────────────────────────────────────────────────────
-  // clearCount/activePrestige reflect the PREVIOUS clear count (before masterTag runs)
-  // After masterTag() the new count = clearCount + 1
-  const newCount    = clearCount + 1;
+  // masterTag() has already run before success phase renders, so clearCount is the new count
+  const newCount    = clearCount;
   const newPrestige = getPrestige(newCount);
+  const prevPrestige = newCount > 1 ? getPrestige(newCount - 1) : null;
   const successContent = (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 20, flex: 1, textAlign: 'center' }}>
       <div style={{ fontSize: 56, filter: `drop-shadow(0 0 24px ${newPrestige.color})` }}>{newPrestige.emoji}</div>
@@ -354,9 +354,9 @@ export function MasterModeScreen({ onNav, desktop }: MasterModeScreenProps) {
         {newCount === 1 && (
           <div className="nx-overline" style={{ fontSize: 10, color: 'var(--ink-mute)' }}>このタグがゴールドに昇格しました</div>
         )}
-        {newCount > 1 && activePrestige && (
+        {newCount > 1 && prevPrestige && (
           <div className="nx-overline" style={{ fontSize: 10, color: 'var(--ink-mute)' }}>
-            {activePrestige.label} → <PrestigeText text={newPrestige.label} style={newPrestige} fontSize={10} bold />
+            {prevPrestige.label} → <PrestigeText text={newPrestige.label} style={newPrestige} fontSize={10} bold />
           </div>
         )}
       </div>
