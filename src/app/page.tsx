@@ -16,6 +16,7 @@ import { SettingsScreen } from '@/components/screens/SettingsScreen';
 import { CosmosMapScreen } from '@/components/screens/CosmosMapScreen';
 import { TimerScreen } from '@/components/screens/TimerScreen';
 import { AchievementScreen } from '@/components/screens/AchievementScreen';
+import { RecordScreen } from '@/components/screens/RecordScreen';
 import { MasterModeScreen } from '@/components/screens/MasterModeScreen';
 import type { Screen } from '@/types';
 
@@ -71,6 +72,8 @@ export default function Home() {
         return <ImportScreen onNav={nav} desktop={desktop} />;
       case 'achieve':
         return <AchievementScreen onNav={nav} desktop={desktop} />;
+      case 'record':
+        return <RecordScreen onNav={nav} desktop={desktop} />;
       case 'stats':
         return <ProfileScreen onNav={nav} desktop={desktop} />;
       case 'settings':

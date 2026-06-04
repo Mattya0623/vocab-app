@@ -15,6 +15,7 @@ const NAV_ITEMS: { id: Screen; labelKey: string; subKey: string; icon: Parameter
   { id: 'list',     labelKey: 'CODEX',    subKey: 'CODEX_SUB',    icon: 'list' },
   { id: 'import',   labelKey: 'IMPORT',   subKey: 'IMPORT_SUB',   icon: 'upload' },
   { id: 'achieve',  labelKey: 'ACHIEVE',  subKey: 'ACHIEVE_SUB',  icon: 'medal' },
+  { id: 'record',   labelKey: 'RECORD',   subKey: 'RECORD_SUB',   icon: 'calendar' },
   { id: 'stats',    labelKey: 'PROFILE',  subKey: 'PROFILE_SUB',  icon: 'chart' },
   { id: 'settings', labelKey: 'SETTINGS', subKey: 'SETTINGS_SUB', icon: 'settings' },
 ];

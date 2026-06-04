@@ -35,6 +35,8 @@ export const TR: TranslationMap = {
   IMPORT_SUB:  { en: 'Add new entries',    ja: 'インポート',        zh: '添加新词',       ko: '새 항목 추가' },
   ACHIEVE:     { en: 'ACHIEVE',            ja: 'ACHIEVE',           zh: '成就',           ko: '업적' },
   ACHIEVE_SUB: { en: 'Badges & milestones', ja: 'バッジ & 実績',   zh: '徽章与里程碑',   ko: '배지 & 업적' },
+  RECORD:      { en: 'RECORD',             ja: 'RECORD',            zh: '记录',            ko: '기록' },
+  RECORD_SUB:  { en: 'Activity calendar',  ja: 'アクティビティ',   zh: '活动日历',        ko: '활동 기록' },
   ACHIEVE_HEAD:{ en: 'ACHIEVEMENTS · バッジ', ja: 'ACHIEVEMENTS · バッジ', zh: '成就 · 徽章', ko: '업적 · 배지' },
   UNLOCKED:    { en: 'unlocked',             ja: '解放済み',             zh: '已解锁',         ko: '해제됨' },
   MASTER:      { en: 'MASTER',              ja: 'MASTER',             zh: '精通',           ko: '마스터' },

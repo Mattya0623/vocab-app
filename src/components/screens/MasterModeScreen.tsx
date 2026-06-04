@@ -64,7 +64,7 @@ function fmtMs(ms: number) {
 export function MasterModeScreen({ onNav, desktop }: MasterModeScreenProps) {
   const t    = useT();
   const { reverse } = useI18n();
-  const { words, masteredTags, masterTag, recordAnswer } = useApp();
+  const { words, masteredTags, tagBestTimes, masterTag, recordAnswer } = useApp();
 
   const [phase,       setPhase]       = useState<Phase>('select');
   const [activeTag,   setActiveTag]   = useState('');
@@ -135,7 +135,7 @@ export function MasterModeScreen({ onNav, desktop }: MasterModeScreenProps) {
         setPhase('fail');
       } else {
         setElapsed(totalMs);
-        masterTag(activeTag);
+        masterTag(activeTag, totalMs);
         setPhase('success');
       }
       return;
@@ -167,6 +167,8 @@ export function MasterModeScreen({ onNav, desktop }: MasterModeScreenProps) {
         const p          = mastered ? getPrestige(clearCount) : null;
         const timeLimitS = (n * 3).toFixed(0);
         const canStart   = n >= 2;
+        const bestMs     = tagBestTimes[tag];
+        const bestStr    = bestMs !== undefined ? fmtMs(bestMs) : null;
         return (
           <div key={tag}
             onClick={() => canStart && startQuiz(tag)}
@@ -193,31 +195,38 @@ export function MasterModeScreen({ onNav, desktop }: MasterModeScreenProps) {
                 {n}語 · {n}問 · ミス不可 · {timeLimitS}s以内
               </div>
             </div>
-            {mastered && p ? (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
-                {/* Prestige label badge */}
-                <span className="nx-mono" style={{
-                  fontSize: 10, padding: '2px 7px', borderRadius: 4,
-                  border: `1px solid ${p.border}`,
-                  ...(p.gradient ? {
-                    background: p.gradient,
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text',
-                  } : { color: p.color }),
-                }}>{p.label}</span>
-                {/* Clear count badge */}
-                <span className="nx-mono" style={{
-                  fontSize: 11, fontWeight: 700, padding: '1px 6px', borderRadius: 3,
-                  border: `1px solid ${p.border}`,
-                  background: p.bg,
-                  color: p.color,
-                  boxShadow: p.shadow,
-                }}>×{clearCount}</span>
-              </div>
-            ) : (
-              <NxIcon kind="arrow" size={14} color="var(--ink-mute)" />
-            )}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              {/* Best time — shown to the left of prestige badges */}
+              {bestStr && (
+                <div style={{ textAlign: 'right' }}>
+                  <div className="nx-overline" style={{ fontSize: 8, color: 'var(--ink-mute)' }}>BEST</div>
+                  <div className="nx-mono" style={{ fontSize: 10, color: p ? p.color : 'var(--amber)' }}>{bestStr}</div>
+                </div>
+              )}
+              {mastered && p ? (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
+                  <span className="nx-mono" style={{
+                    fontSize: 10, padding: '2px 7px', borderRadius: 4,
+                    border: `1px solid ${p.border}`,
+                    ...(p.gradient ? {
+                      background: p.gradient,
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      backgroundClip: 'text',
+                    } : { color: p.color }),
+                  }}>{p.label}</span>
+                  <span className="nx-mono" style={{
+                    fontSize: 11, fontWeight: 700, padding: '1px 6px', borderRadius: 3,
+                    border: `1px solid ${p.border}`,
+                    background: p.bg,
+                    color: p.color,
+                    boxShadow: p.shadow,
+                  }}>×{clearCount}</span>
+                </div>
+              ) : (
+                <NxIcon kind="arrow" size={14} color="var(--ink-mute)" />
+              )}
+            </div>
           </div>
         );
       })}

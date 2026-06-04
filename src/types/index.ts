@@ -42,11 +42,16 @@ export interface CosmosMap {
   stages: Stage[];
 }
 
+export interface DayRecord {
+  answers: number;
+  masters: Record<string, number>;
+}
+
 export type Lang = 'ja' | 'en' | 'zh' | 'ko';
 export type Screen =
   | 'login' | 'setup' | 'empty' | 'maps' | 'home' | 'timer'
   | 'result_ok' | 'result_ng' | 'boxes' | 'boxquiz'
-  | 'master' | 'list' | 'import' | 'achieve' | 'stats' | 'settings';
+  | 'master' | 'list' | 'import' | 'achieve' | 'record' | 'stats' | 'settings';
 
 export type SortKey = 'default' | 'acc_asc' | 'acc_desc' | 'att_desc' | 'az';
 

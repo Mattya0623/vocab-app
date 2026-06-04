@@ -5,7 +5,7 @@ import {
 } from 'react';
 import type { User } from 'firebase/auth';
 import type { Firestore } from 'firebase/firestore';
-import type { Word, UserStats, Screen, LastResult } from '@/types';
+import type { Word, UserStats, Screen, LastResult, DayRecord } from '@/types';
 
 interface AppContextValue {
   user: User | null;
@@ -37,7 +37,9 @@ interface AppContextValue {
   setLastResult: (r: LastResult) => void;
   setTagFilter: (t: string | null) => void;
   masteredTags: Record<string, number>;
-  masterTag: (tag: string) => void;
+  tagBestTimes: Record<string, number>;
+  dailyLog: Record<string, DayRecord>;
+  masterTag: (tag: string, timeMs?: number) => void;
   showResult: boolean;
   setShowResult: (v: boolean) => void;
   quizKey: number;
@@ -70,6 +72,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [lastResult, setLastResult]       = useState<LastResult | null>(null);
   const [tagFilter, setTagFilter]         = useState<string | null>(null);
   const [masteredTags, setMasteredTags]   = useState<Record<string, number>>({});
+  const [tagBestTimes, setTagBestTimes]   = useState<Record<string, number>>({});
+  const [dailyLog, setDailyLog]           = useState<Record<string, DayRecord>>({});
   const [showResult, setShowResult]       = useState(true);
   const [quizKey, setQuizKey]             = useState(0);
   const showResultRef                     = useRef(true);
@@ -81,16 +85,31 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const timerTotalRef    = useRef(300);
 
   // Refs let callbacks access current state without stale closures
-  const userRef        = useRef<User | null>(null);
-  const wordsRef       = useRef<Word[]>([]);
-  const maxStreakRef   = useRef(0);
-  const dbRef          = useRef<Firestore | undefined>(undefined);
-  const wordsUnsubRef  = useRef<(() => void) | undefined>(undefined);
+  const userRef           = useRef<User | null>(null);
+  const wordsRef          = useRef<Word[]>([]);
+  const maxStreakRef      = useRef(0);
+  const dbRef             = useRef<Firestore | undefined>(undefined);
+  const wordsUnsubRef     = useRef<(() => void) | undefined>(undefined);
+  const dailyLogRef       = useRef<Record<string, DayRecord>>({});
+  const dailySaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => { userRef.current        = user; },       [user]);
-  useEffect(() => { wordsRef.current      = words; },      [words]);
-  useEffect(() => { maxStreakRef.current  = maxStreak; },  [maxStreak]);
+  useEffect(() => { userRef.current     = user; },       [user]);
+  useEffect(() => { wordsRef.current    = words; },      [words]);
+  useEffect(() => { maxStreakRef.current = maxStreak; }, [maxStreak]);
   useEffect(() => { showResultRef.current = showResult; }, [showResult]);
+  useEffect(() => { dailyLogRef.current = dailyLog; },   [dailyLog]);
+
+  const scheduleDailyLogSave = useCallback(() => {
+    if (dailySaveTimerRef.current) clearTimeout(dailySaveTimerRef.current);
+    dailySaveTimerRef.current = setTimeout(() => {
+      const u = userRef.current; const db = dbRef.current;
+      if (u && !u.isAnonymous && db) {
+        import('@/lib/firestore').then(({ saveDailyLog }) =>
+          saveDailyLog(db, u.uid, dailyLogRef.current).catch(console.error)
+        );
+      }
+    }, 4000);
+  }, []);
 
   // Persist maxStreak to Firestore whenever it increases
   useEffect(() => {
@@ -158,7 +177,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
           if (profile.masteredTags) {
             const raw = profile.masteredTags;
             if (Array.isArray(raw)) {
-              // Migrate old string[] format
               const converted: Record<string, number> = {};
               raw.forEach(tag => { converted[tag] = 1; });
               setMasteredTags(converted);
@@ -166,6 +184,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
               setMasteredTags(raw as Record<string, number>);
             }
           }
+          if (profile.tagBestTimes) setTagBestTimes(profile.tagBestTimes);
+          if (profile.dailyLog)    setDailyLog(profile.dailyLog as Record<string, DayRecord>);
           setScreen(s => (s === 'login' || s === 'setup') ? 'maps' : s);
           wordsUnsubRef.current = subscribeWords(db, firebaseUser.uid, setWords);
         } catch (e) {
@@ -247,7 +267,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const avgResponseMs   = Math.round((prevAvg * (attempts - 1) + responseMs) / attempts);
     const updated         = { ...word, attempts, correct_answers, accuracy, avgResponseMs };
 
-    // Always update local state immediately for instant UI feedback
     setWords(prev => prev.map(w => w.id === wordId ? updated : w));
 
     const u  = userRef.current;
@@ -257,7 +276,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
         upsertWord(db, u.uid, updated).catch(console.error)
       );
     }
-  }, []);
+
+    // Track daily flashcard count
+    const today = getToday();
+    setDailyLog(prev => {
+      const day  = prev[today] ?? { answers: 0, masters: {} };
+      const next = { ...prev, [today]: { ...day, answers: day.answers + 1 } };
+      dailyLogRef.current = next;
+      scheduleDailyLogSave();
+      return next;
+    });
+  }, [scheduleDailyLogSave]);
 
   const addWords = useCallback((newWords: Omit<Word, 'id'>[]) => {
     const withIds = newWords.map((w, i) => ({ ...w, id: `${Date.now()}-${i}` }));
@@ -332,11 +361,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setTimerRemaining(secs);
   }, []);
 
-  const masterTag = useCallback((tag: string) => {
+  const getToday = () => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  };
+
+  const masterTag = useCallback((tag: string, timeMs?: number) => {
+    const today = getToday();
+
+    // Update mastered count
     setMasteredTags(prev => {
       const next = { ...prev, [tag]: (prev[tag] ?? 0) + 1 };
-      const u  = userRef.current;
-      const db = dbRef.current;
+      const u = userRef.current; const db = dbRef.current;
       if (u && !u.isAnonymous && db) {
         import('@/lib/firestore').then(({ saveMasteredTags }) =>
           saveMasteredTags(db, u.uid, next).catch(console.error)
@@ -344,7 +380,32 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
       return next;
     });
-  }, []);
+
+    // Update best time
+    if (timeMs !== undefined) {
+      setTagBestTimes(prev => {
+        const prevBest = prev[tag];
+        if (prevBest !== undefined && prevBest <= timeMs) return prev;
+        const next = { ...prev, [tag]: timeMs };
+        const u = userRef.current; const db = dbRef.current;
+        if (u && !u.isAnonymous && db) {
+          import('@/lib/firestore').then(({ saveTagBestTimes }) =>
+            saveTagBestTimes(db, u.uid, next).catch(console.error)
+          );
+        }
+        return next;
+      });
+    }
+
+    // Update daily log
+    setDailyLog(prev => {
+      const day  = prev[today] ?? { answers: 0, masters: {} };
+      const next = { ...prev, [today]: { ...day, masters: { ...day.masters, [tag]: (day.masters[tag] ?? 0) + 1 } } };
+      dailyLogRef.current = next;
+      scheduleDailyLogSave();
+      return next;
+    });
+  }, [scheduleDailyLogSave]);
 
   const go = useCallback((s: Screen) => {
     if (s !== 'boxquiz' && s !== 'result_ok' && s !== 'result_ng') setSessionSource('home');
@@ -367,7 +428,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       user, username, authReady,
       words, stats, level, xp, screen,
       pickedBox, sessionSource, selectedMap, sessionLog, lastResult, tagFilter,
-      masteredTags, masterTag,
+      masteredTags, tagBestTimes, dailyLog, masterTag,
       showResult, setShowResult, quizKey,
       timerTotal, timerRemaining, timerRunning, timerDone,
       timerStart, timerPause, timerReset, timerSet,

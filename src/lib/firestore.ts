@@ -14,6 +14,8 @@ export interface UserProfile {
   username: string;
   maxStreak: number;
   masteredTags?: Record<string, number> | string[];
+  tagBestTimes?: Record<string, number>;
+  dailyLog?: Record<string, { answers: number; masters: Record<string, number> }>;
   createdAt: unknown;
 }
 
@@ -37,6 +39,18 @@ export async function saveMaxStreak(db: Firestore, uid: string, maxStreak: numbe
 
 export async function saveMasteredTags(db: Firestore, uid: string, masteredTags: Record<string, number>): Promise<void> {
   await setDoc(profileRef(db, uid), { masteredTags }, { merge: true });
+}
+
+export async function saveTagBestTimes(db: Firestore, uid: string, tagBestTimes: Record<string, number>): Promise<void> {
+  await setDoc(profileRef(db, uid), { tagBestTimes }, { merge: true });
+}
+
+export async function saveDailyLog(
+  db: Firestore,
+  uid: string,
+  dailyLog: Record<string, { answers: number; masters: Record<string, number> }>,
+): Promise<void> {
+  await setDoc(profileRef(db, uid), { dailyLog }, { merge: true });
 }
 
 export function subscribeWords(
