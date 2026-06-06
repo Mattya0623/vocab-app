@@ -23,11 +23,12 @@ export function NxDesktopShell({ active, onNav, title, sub, right, children }: N
           background: 'rgba(4,5,26,0.4)',
           backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)',
         }}>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div className="nx-h glow" style={{ fontSize: 22, color: 'var(--cyan)' }}>{title}</div>
-            {sub && <div className="nx-overline" style={{ marginTop: 2 }}>{sub}</div>}
+          <div style={{ flexShrink: 0, minWidth: 0 }}>
+            <div className="nx-h glow" style={{ fontSize: 22, color: 'var(--cyan)', whiteSpace: 'nowrap' }}>{title}</div>
+            {sub && <div className="nx-overline" style={{ marginTop: 2, whiteSpace: 'nowrap' }}>{sub}</div>}
           </div>
-          {right && <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>{right}</div>}
+          <div style={{ flex: 1 }} />
+          {right && <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexShrink: 1, minWidth: 0 }}>{right}</div>}
         </div>
         <div style={{ flex: 1, overflow: 'hidden', padding: 24, position: 'relative' }}>
           {children}

@@ -169,10 +169,12 @@ export function PlayScreen({ onNav, onAnswer, reverse, desktop }: PlayScreenProp
         title={`${t('PLAY')} · ${t('PLAY_SUB')}`}
         sub={`${reverse ? 'JA → EN' : 'EN → JA'} · ${quizPool.length} ${t('ENTRIES')}${tagFilter ? ` · ${tagFilter}` : ''}`}
         right={<>
-          {tagFilterBar}
-          <NxTag amber>▲ {stats.currentStreak} {t('STREAK')}</NxTag>
-          <NxTag cyan>LV·{String(level).padStart(2, '0')}</NxTag>
-          <div onClick={() => onNav('settings')} style={{ cursor: 'pointer' }}>
+          <div style={{ flexShrink: 1, minWidth: 0, maxWidth: '45vw', overflow: 'hidden' }}>
+            {tagFilterBar}
+          </div>
+          <NxTag amber style={{ flexShrink: 0 }}>▲ {stats.currentStreak} {t('STREAK')}</NxTag>
+          <NxTag cyan style={{ flexShrink: 0 }}>LV·{String(level).padStart(2, '0')}</NxTag>
+          <div onClick={() => onNav('settings')} style={{ cursor: 'pointer', flexShrink: 0 }}>
             <NxIcon kind="settings" size={20} color="var(--ink-soft)" />
           </div>
         </>}>
